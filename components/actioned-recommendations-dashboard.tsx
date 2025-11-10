@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RecommendationsList } from "@/components/recommendations-list"
 import { Calendar } from "@/components/ui/calendar"
@@ -221,9 +221,10 @@ export function ActionedRecommendationsDashboard() {
 
           {(openFilters.category || isCategoryActive) && (
             <Popover open={openFilters.category} onOpenChange={(open) => toggleFilter("category", open)}>
-              <PopoverTrigger asChild>
+              <PopoverAnchor asChild>
                 <Button
                   variant="outline"
+                  onClick={() => toggleFilter("category", !openFilters.category)}
                   className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                     isCategoryActive ? "bg-blue-50 border-blue-200 hover:bg-blue-100" : "bg-transparent hover:bg-accent"
                   }`}
@@ -232,7 +233,7 @@ export function ActionedRecommendationsDashboard() {
                   <span>{getCategoryLabel()}</span>
                   <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                 </Button>
-              </PopoverTrigger>
+              </PopoverAnchor>
               <PopoverContent className="w-80 p-3 z-50" align="start">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -292,9 +293,10 @@ export function ActionedRecommendationsDashboard() {
 
           {(openFilters.priority || isPriorityActive) && (
             <Popover open={openFilters.priority} onOpenChange={(open) => toggleFilter("priority", open)}>
-              <PopoverTrigger asChild>
+              <PopoverAnchor asChild>
                 <Button
                   variant="outline"
+                  onClick={() => toggleFilter("priority", !openFilters.priority)}
                   className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                     isPriorityActive ? "bg-blue-50 border-blue-200 hover:bg-blue-100" : "bg-transparent hover:bg-accent"
                   }`}
@@ -303,7 +305,7 @@ export function ActionedRecommendationsDashboard() {
                   <span>{getPriorityLabel()}</span>
                   <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                 </Button>
-              </PopoverTrigger>
+              </PopoverAnchor>
               <PopoverContent className="w-64 p-3 z-50" align="start">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -356,9 +358,10 @@ export function ActionedRecommendationsDashboard() {
 
           {(openFilters.owner || isOwnerActive) && (
             <Popover open={openFilters.owner} onOpenChange={(open) => toggleFilter("owner", open)}>
-              <PopoverTrigger asChild>
+              <PopoverAnchor asChild>
                 <Button
                   variant="outline"
+                  onClick={() => toggleFilter("owner", !openFilters.owner)}
                   className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                     isOwnerActive ? "bg-blue-50 border-blue-200 hover:bg-blue-100" : "bg-transparent hover:bg-accent"
                   }`}
@@ -367,7 +370,7 @@ export function ActionedRecommendationsDashboard() {
                   <span>{getOwnerLabel()}</span>
                   <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                 </Button>
-              </PopoverTrigger>
+              </PopoverAnchor>
               <PopoverContent className="w-64 p-3 z-50" align="start">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -444,9 +447,10 @@ export function ActionedRecommendationsDashboard() {
 
           {(openFilters.date || isDateActive) && (
             <Popover open={openFilters.date} onOpenChange={(open) => toggleFilter("date", open)}>
-              <PopoverTrigger asChild>
+              <PopoverAnchor asChild>
                 <Button
                   variant="outline"
+                  onClick={() => toggleFilter("date", !openFilters.date)}
                   className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                     isDateActive ? "bg-blue-50 border-blue-200 hover:bg-blue-100" : "bg-transparent hover:bg-accent"
                   }`}
@@ -456,7 +460,7 @@ export function ActionedRecommendationsDashboard() {
                   <span>{getDateLabel()}</span>
                   <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                 </Button>
-              </PopoverTrigger>
+              </PopoverAnchor>
               <PopoverContent
                 className="w-auto p-0 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-2 data-[state=open]:duration-200 data-[state=closed]:duration-150"
                 align="start"
@@ -489,9 +493,10 @@ export function ActionedRecommendationsDashboard() {
 
           {(openFilters.provider || isProviderActive) && (
             <Popover open={openFilters.provider} onOpenChange={(open) => toggleFilter("provider", open)}>
-              <PopoverTrigger asChild>
+              <PopoverAnchor asChild>
                 <Button
                   variant="outline"
+                  onClick={() => toggleFilter("provider", !openFilters.provider)}
                   className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                     isProviderActive ? "bg-blue-50 border-blue-200 hover:bg-blue-100" : "bg-transparent hover:bg-accent"
                   }`}
@@ -500,7 +505,7 @@ export function ActionedRecommendationsDashboard() {
                   <span>{getProviderLabel()}</span>
                   <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                 </Button>
-              </PopoverTrigger>
+              </PopoverAnchor>
               <PopoverContent className="w-64 p-3 z-50" align="start">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -532,9 +537,10 @@ export function ActionedRecommendationsDashboard() {
 
           {(openFilters.type || isTypeActive) && (
             <Popover open={openFilters.type} onOpenChange={(open) => toggleFilter("type", open)}>
-              <PopoverTrigger asChild>
+              <PopoverAnchor asChild>
                 <Button
                   variant="outline"
+                  onClick={() => toggleFilter("type", !openFilters.type)}
                   className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                     isTypeActive ? "bg-blue-50 border-blue-200 hover:bg-blue-100" : "bg-transparent hover:bg-accent"
                   }`}
@@ -543,7 +549,7 @@ export function ActionedRecommendationsDashboard() {
                   <span>{getTypeLabel()}</span>
                   <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                 </Button>
-              </PopoverTrigger>
+              </PopoverAnchor>
               <PopoverContent className="w-64 p-3 z-50" align="start">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -577,7 +583,7 @@ export function ActionedRecommendationsDashboard() {
 
           {getAvailableFilters().length > 0 && (
             <Popover open={addFilterOpen} onOpenChange={setAddFilterOpen}>
-              <PopoverTrigger asChild>
+              <PopoverAnchor asChild>
                 <Button
                   variant="outline"
                   className="h-8 gap-1.5 px-3 text-sm text-muted-foreground hover:text-foreground bg-transparent relative z-10 pointer-events-auto"
@@ -585,7 +591,7 @@ export function ActionedRecommendationsDashboard() {
                   <Plus className="w-3.5 h-3.5" />
                   Filter
                 </Button>
-              </PopoverTrigger>
+              </PopoverAnchor>
               <PopoverContent className="w-56 p-2 z-50" align="start">
                 <div className="space-y-1">
                   <div className="px-2 py-1.5">
