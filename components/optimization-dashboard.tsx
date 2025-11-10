@@ -775,13 +775,18 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 <Popover
                   open={openFilters.category}
                   onOpenChange={(open) => {
+                    console.log("[v0] Category button clicked", { openFilters, currentState: openFilters.category })
                     toggleFilter("category", open)
                   }}
                 >
                   <PopoverAnchor asChild>
                     <Button
                       variant="outline"
-                      onClick={() => toggleFilter("category", !openFilters.category)}
+                      onClick={(e) => {
+                        console.log("[v0] Category button clicked", { openFilters, currentState: openFilters.category })
+                        e.stopPropagation()
+                        toggleFilter("category", !openFilters.category)
+                      }}
                       className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-blue-50 border-blue-200 hover:bg-blue-100"
                     >
                       <span className="font-medium">Category:</span>
@@ -826,7 +831,14 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                   <PopoverAnchor asChild>
                     <Button
                       variant="outline"
-                      onClick={() => toggleFilter("subCategory", !openFilters.subCategory)}
+                      onClick={(e) => {
+                        console.log("[v0] Sub-category button clicked", {
+                          openFilters,
+                          currentState: openFilters.subCategory,
+                        })
+                        e.stopPropagation()
+                        toggleFilter("subCategory", !openFilters.subCategory)
+                      }}
                       className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-blue-50 border-blue-200 hover:bg-blue-100"
                     >
                       <span className="font-medium">Sub-category:</span>
@@ -890,7 +902,11 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                   <PopoverAnchor asChild>
                     <Button
                       variant="outline"
-                      onClick={() => toggleFilter("priority", !openFilters.priority)}
+                      onClick={(e) => {
+                        console.log("[v0] Priority button clicked", { openFilters, currentState: openFilters.priority })
+                        e.stopPropagation()
+                        toggleFilter("priority", !openFilters.priority)
+                      }}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isPriorityActive
                           ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -958,7 +974,11 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                   <PopoverAnchor asChild>
                     <Button
                       variant="outline"
-                      onClick={() => toggleFilter("status", !openFilters.status)}
+                      onClick={(e) => {
+                        console.log("[v0] Status button clicked", { openFilters, currentState: openFilters.status })
+                        e.stopPropagation()
+                        toggleFilter("status", !openFilters.status)
+                      }}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isStatusActive
                           ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1038,7 +1058,11 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                   <PopoverAnchor asChild>
                     <Button
                       variant="outline"
-                      onClick={() => toggleFilter("date", !openFilters.date)}
+                      onClick={(e) => {
+                        console.log("[v0] Date button clicked", { openFilters, currentState: openFilters.date })
+                        e.stopPropagation()
+                        toggleFilter("date", !openFilters.date)
+                      }}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isDateActive ? "bg-blue-50 border-blue-200 hover:bg-blue-100" : "bg-transparent hover:bg-accent"
                       }`}
@@ -1085,7 +1109,11 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                   <PopoverAnchor asChild>
                     <Button
                       variant="outline"
-                      onClick={() => toggleFilter("provider", !openFilters.provider)}
+                      onClick={(e) => {
+                        console.log("[v0] Provider button clicked", { openFilters, currentState: openFilters.provider })
+                        e.stopPropagation()
+                        toggleFilter("provider", !openFilters.provider)
+                      }}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isProviderActive
                           ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1146,7 +1174,11 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                   <PopoverAnchor asChild>
                     <Button
                       variant="outline"
-                      onClick={() => toggleFilter("type", !openFilters.type)}
+                      onClick={(e) => {
+                        console.log("[v0] Type button clicked", { openFilters, currentState: openFilters.type })
+                        e.stopPropagation()
+                        toggleFilter("type", !openFilters.type)
+                      }}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isTypeActive ? "bg-blue-50 border-blue-200 hover:bg-blue-100" : "bg-transparent hover:bg-accent"
                       }`}
@@ -1209,7 +1241,11 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                   <PopoverAnchor asChild>
                     <Button
                       variant="outline"
-                      onClick={() => toggleFilter("tagType", !openFilters.tagType)}
+                      onClick={(e) => {
+                        console.log("[v0] Tag Type button clicked", { openFilters, currentState: openFilters.tagType })
+                        e.stopPropagation()
+                        toggleFilter("tagType", !openFilters.tagType)
+                      }}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isTagTypeActive
                           ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1309,7 +1345,14 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                   <PopoverAnchor asChild>
                     <Button
                       variant="outline"
-                      onClick={() => toggleFilter("tagValue", !openFilters.tagValue)}
+                      onClick={(e) => {
+                        console.log("[v0] Tag Value button clicked", {
+                          openFilters,
+                          currentState: openFilters.tagValue,
+                        })
+                        e.stopPropagation()
+                        toggleFilter("tagValue", !openFilters.tagValue)
+                      }}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isTagValueActive
                           ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1358,13 +1401,18 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 <Popover
                   open={addFilterOpen}
                   onOpenChange={(open) => {
+                    console.log("[v0] Add filter popover onOpenChange", { open })
                     setAddFilterOpen(open)
                   }}
                 >
                   <PopoverAnchor asChild>
                     <Button
                       variant="outline"
-                      onClick={() => setAddFilterOpen(!addFilterOpen)}
+                      onClick={(e) => {
+                        console.log("[v0] Add Filter button clicked", { addFilterOpen })
+                        e.stopPropagation()
+                        setAddFilterOpen(!addFilterOpen)
+                      }}
                       className="h-8 gap-1.5 px-3 text-sm text-muted-foreground hover:text-foreground bg-transparent relative z-10 pointer-events-auto"
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -1410,41 +1458,43 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                   </SelectContent>
                 </Select>
 
-                {activeViewId !== "default" && (
-                  <Popover open={viewMenuOpen} onOpenChange={setViewMenuOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0 border border-border bg-background shadow-xs hover:bg-accent"
-                      >
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-64 p-2 z-50" align="start">
-                      <div className="space-y-1">
-                        <button
-                          onClick={() => handleViewFilterChange("revisit")}
-                          className={`w-full text-left px-2 py-1.5 text-sm rounded-sm flex items-center gap-2 whitespace-nowrap ${
-                            viewFilter === "revisit" ? "bg-accent font-medium" : "hover:bg-accent"
-                          }`}
+                {activeViewId !== "snoozed-archived" &&
+                  activeViewId !== "pending-review" &&
+                  activeViewId !== "actioned" && (
+                    <Popover open={viewMenuOpen} onOpenChange={setViewMenuOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0 border border-border bg-background shadow-xs hover:bg-accent"
                         >
-                          <RefreshCw className="w-4 h-4 flex-shrink-0" />
-                          Re-visit Recommendations
-                        </button>
-                        <button
-                          onClick={() => handleViewFilterChange("archived")}
-                          className={`w-full text-left px-2 py-1.5 text-sm rounded-sm flex items-center gap-2 whitespace-nowrap ${
-                            viewFilter === "archived" ? "bg-accent font-medium" : "hover:bg-accent"
-                          }`}
-                        >
-                          <Archive className="w-4 h-4 flex-shrink-0" />
-                          Archived Recommendations
-                        </button>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64 p-2 z-50" align="start">
+                        <div className="space-y-1">
+                          <button
+                            onClick={() => handleViewFilterChange("revisit")}
+                            className={`w-full text-left px-2 py-1.5 text-sm rounded-sm flex items-center gap-2 whitespace-nowrap ${
+                              viewFilter === "revisit" ? "bg-accent font-medium" : "hover:bg-accent"
+                            }`}
+                          >
+                            <RefreshCw className="w-4 h-4 flex-shrink-0" />
+                            Re-visit Recommendations
+                          </button>
+                          <button
+                            onClick={() => handleViewFilterChange("archived")}
+                            className={`w-full text-left px-2 py-1.5 text-sm rounded-sm flex items-center gap-2 whitespace-nowrap ${
+                              viewFilter === "archived" ? "bg-accent font-medium" : "hover:bg-accent"
+                            }`}
+                          >
+                            <Archive className="w-4 h-4 flex-shrink-0" />
+                            Archived Recommendations
+                          </button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
               </div>
 
               {/* Export button */}
@@ -1468,13 +1518,18 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 <Popover
                   open={addFilterOpen}
                   onOpenChange={(open) => {
+                    console.log("[v0] Add filter popover onOpenChange", { open })
                     setAddFilterOpen(open)
                   }}
                 >
                   <PopoverAnchor asChild>
                     <Button
                       variant="outline"
-                      onClick={() => setAddFilterOpen(!addFilterOpen)}
+                      onClick={(e) => {
+                        console.log("[v0] Add Filter button clicked", { addFilterOpen })
+                        e.stopPropagation()
+                        setAddFilterOpen(!addFilterOpen)
+                      }}
                       className="h-8 gap-1.5 px-3 text-sm text-muted-foreground hover:text-foreground bg-transparent relative z-10 pointer-events-auto"
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -1562,7 +1617,14 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                     <PopoverAnchor asChild>
                       <Button
                         variant="outline"
-                        onClick={() => toggleFilter("category", !openFilters.category)}
+                        onClick={(e) => {
+                          console.log("[v0] Pending Review Category button clicked", {
+                            openFilters,
+                            currentState: openFilters.category,
+                          })
+                          e.stopPropagation()
+                          toggleFilter("category", !openFilters.category)
+                        }}
                         className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                           isCategoryActivePendingReview
                             ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1638,7 +1700,14 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                     <PopoverAnchor asChild>
                       <Button
                         variant="outline"
-                        onClick={() => toggleFilter("priority", !openFilters.priority)}
+                        onClick={(e) => {
+                          console.log("[v0] Pending Review Priority button clicked", {
+                            openFilters,
+                            currentState: openFilters.priority,
+                          })
+                          e.stopPropagation()
+                          toggleFilter("priority", !openFilters.priority)
+                        }}
                         className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                           isPriorityActive
                             ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1708,7 +1777,14 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                     <PopoverAnchor asChild>
                       <Button
                         variant="outline"
-                        onClick={() => toggleFilter("provider", !openFilters.provider)}
+                        onClick={(e) => {
+                          console.log("[v0] Pending Review Provider button clicked", {
+                            openFilters,
+                            currentState: openFilters.provider,
+                          })
+                          e.stopPropagation()
+                          toggleFilter("provider", !openFilters.provider)
+                        }}
                         className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                           isProviderActive
                             ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1771,7 +1847,14 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                     <PopoverAnchor asChild>
                       <Button
                         variant="outline"
-                        onClick={() => toggleFilter("date", !openFilters.date)}
+                        onClick={(e) => {
+                          console.log("[v0] Pending Review Date button clicked", {
+                            openFilters,
+                            currentState: openFilters.date,
+                          })
+                          e.stopPropagation()
+                          toggleFilter("date", !openFilters.date)
+                        }}
                         className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                           isDateActive
                             ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1822,7 +1905,14 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                     <PopoverAnchor asChild>
                       <Button
                         variant="outline"
-                        onClick={() => toggleFilter("tagType", !openFilters.tagType)}
+                        onClick={(e) => {
+                          console.log("[v0] Pending Review Tag Type button clicked", {
+                            openFilters,
+                            currentState: openFilters.tagType,
+                          })
+                          e.stopPropagation()
+                          toggleFilter("tagType", !openFilters.tagType)
+                        }}
                         className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                           isTagTypeActive
                             ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1924,7 +2014,14 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                     <PopoverAnchor asChild>
                       <Button
                         variant="outline"
-                        onClick={() => toggleFilter("tagValue", !openFilters.tagValue)}
+                        onClick={(e) => {
+                          console.log("[v0] Pending Review Tag Value button clicked", {
+                            openFilters,
+                            currentState: openFilters.tagValue,
+                          })
+                          e.stopPropagation()
+                          toggleFilter("tagValue", !openFilters.tagValue)
+                        }}
                         className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                           isTagValueActive
                             ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1979,7 +2076,14 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                     <PopoverAnchor asChild>
                       <Button
                         variant="outline"
-                        onClick={() => toggleFilter("effort", !openFilters.effort)}
+                        onClick={(e) => {
+                          console.log("[v0] Pending Review Effort button clicked", {
+                            openFilters,
+                            currentState: openFilters.effort,
+                          })
+                          e.stopPropagation()
+                          toggleFilter("effort", !openFilters.effort)
+                        }}
                         className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-transparent hover:bg-accent"
                       >
                         <span className="font-medium">Effort:</span>
