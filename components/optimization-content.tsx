@@ -1027,7 +1027,7 @@ const OptimizationContent = ({ selectedStatuses }: OptimizationContentProps) => 
             const hasSubCategories = Object.keys(subCategorySavings).length > 0
 
             return (
-              <div key={index} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+              <div key={index} className="border border-gray-200 rounded-lg bg-white">
                 <div
                   onClick={() => handleCategoryClick(category.title)}
                   className="p-6 hover:bg-gray-50 transition-colors cursor-pointer"
@@ -1038,7 +1038,9 @@ const OptimizationContent = ({ selectedStatuses }: OptimizationContentProps) => 
                         <IconComponent className="h-5 w-5 text-blue-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900">{category.title}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-gray-900">{category.title}</h3>
+                        </div>
                         <div className="flex items-center gap-2 mt-1">
                           <p className="text-sm text-gray-600">{counts.totalCount.toLocaleString()} recommendations</p>
                           {highPriorityCount > 0 && (
@@ -1073,13 +1075,14 @@ const OptimizationContent = ({ selectedStatuses }: OptimizationContentProps) => 
                           <p className="text-lg font-semibold text-green-600">{category.savings}</p>
                           <p className="text-xs text-gray-500">Potential Annual Savings</p>
                         </div>
+                        <ChevronRight className="h-5 w-5 text-gray-400" />
                       </div>
                     )}
                   </div>
                 </div>
 
                 {isExpanded && hasSubCategories && (
-                  <div className="bg-gray-50 border-t border-gray-200">
+                  <div className="bg-gray-50 border-t border-gray-200 overflow-hidden">
                     <div className="px-6 py-4">
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Sub-categories</p>
                       <div className="space-y-2">
@@ -1131,27 +1134,32 @@ const OptimizationContent = ({ selectedStatuses }: OptimizationContentProps) => 
                   </div>
                 )}
 
-                <div className="border-t border-gray-200 bg-white px-4 py-2 flex items-center justify-end gap-4">
-                  {hasSubCategories && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => toggleCategoryExpansion(category.title, e)}
-                      className="gap-2 text-gray-700 hover:text-gray-900"
-                    >
-                      {isExpanded ? (
-                        <>
-                          <ChevronUp className="h-4 w-4" />
-                          View by Sub-category
-                        </>
-                      ) : (
-                        <>
-                          <ChevronDown className="h-4 w-4" />
-                          View by Sub-category
-                        </>
-                      )}
-                    </Button>
-                  )}
+                <div className="border-t border-gray-200 bg-white px-4 py-2 flex items-center justify-between">
+                  <div className="flex items-center">
+                    {hasSubCategories && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleCategoryExpansion(category.title, e)
+                        }}
+                        className="gap-1.5 text-xs text-gray-600 hover:text-gray-900 h-7 px-2"
+                      >
+                        {isExpanded ? (
+                          <>
+                            <ChevronUp className="h-3 w-3" />
+                            View sub-categories
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="h-3 w-3" />
+                            View sub-categories
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -1159,10 +1167,10 @@ const OptimizationContent = ({ selectedStatuses }: OptimizationContentProps) => 
                       e.stopPropagation()
                       handleCategoryClick(category.title)
                     }}
-                    className="gap-2 text-gray-700 hover:text-gray-900"
+                    className="gap-1.5 text-xs text-gray-600 hover:text-gray-900 h-7 px-2"
                   >
-                    <Eye className="h-4 w-4" />
-                    View Recommendations
+                    <Eye className="h-3 w-3" />
+                    View recommendations
                   </Button>
                 </div>
               </div>
