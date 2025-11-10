@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverAnchor, PopoverTrigger } from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Calendar } from "@/components/ui/calendar"
 import type { DateRange } from "react-day-picker"
@@ -38,12 +38,6 @@ interface OptimizationDashboardProps {
   initialCategoryFilter?: string | null
   dataSource?: "cloud" | "saas"
 }
-
-// interface SortRule {
-//   id: string
-//   field: string
-//   direction: "asc" | "desc"
-// }
 
 const cloudCategories = [
   { id: "Reserved Instances", icon: Server, count: 5 },
@@ -144,10 +138,6 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
     },
   })
 
-  // const [sortRules, setSortRules] = useState<SortRule[]>([])
-  // const [sortOpen, setSortOpen] = useState(false)
-  // const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
-
   const [openFilters, setOpenFilters] = useState<Record<string, boolean>>({})
   const [addFilterOpen, setAddFilterOpen] = useState(false)
 
@@ -192,19 +182,11 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
     let total = 0
 
     recommendationsData.forEach((rec) => {
-      // Apply all filters except provider filter
       let include = true
 
-      // Category filter
       if (selectedCategories !== "all" && rec.category !== selectedCategories) include = false
-
-      // Status filter
       if (!selectedStatuses.has(rec.status)) include = false
-
-      // Subcategory filter
       if (selectedSubCategory.length > 0 && !selectedSubCategory.includes(rec.subCategory)) include = false
-
-      // Search filter
       if (searchQuery && !rec.resourceName.toLowerCase().includes(searchQuery.toLowerCase())) include = false
 
       if (include) {
@@ -225,29 +207,18 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
     const counts: Record<string, number> = {}
 
     const filtered = recommendationsData.filter((rec) => {
-      // Category filter
       if (rec.category !== selectedCategories) return false
-
-      // Priority filter
       if (selectedPriorities.size > 0 && !selectedPriorities.has(rec.priority)) return false
-
-      // Status filter
       if (selectedStatuses.size > 0 && !selectedStatuses.has(rec.status)) return false
-
-      // Provider filter
       if (selectedProvider !== "all" && rec.provider !== selectedProvider) return false
-
-      // Search query
       if (searchQuery && !rec.title.toLowerCase().includes(searchQuery.toLowerCase())) return false
 
-      // Date range filter
       if (dateRange?.from || dateRange?.to) {
         const recDate = new Date(rec.createdDate)
         if (dateRange.from && recDate < dateRange.from) return false
         if (dateRange.to && recDate > dateRange.to) return false
       }
 
-      // Sub-category filter (applied here if selectedSubCategory is not empty)
       if (selectedSubCategory.length > 0 && !selectedSubCategory.includes(rec.subCategory)) {
         return false
       }
@@ -255,7 +226,6 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
       return true
     })
 
-    // Count by subcategory
     filtered.forEach((rec) => {
       if (rec.subCategory) {
         counts[rec.subCategory] = (counts[rec.subCategory] || 0) + 1
@@ -269,35 +239,22 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
     const counts: Record<string, number> = {}
 
     recommendationsData.forEach((rec) => {
-      // Apply all filters except category
-      // Priority filter
       if (selectedPriorities.size > 0 && !selectedPriorities.has(rec.priority)) return
-
-      // Status filter
       if (selectedStatuses.size > 0 && !selectedStatuses.has(rec.status)) return
-
-      // Provider filter
       if (selectedProvider !== "all" && rec.provider !== selectedProvider) return
-
-      // Search query
       if (searchQuery && !rec.title.toLowerCase().includes(searchQuery.toLowerCase())) return
 
-      // Date range filter
       if (dateRange?.from || dateRange?.to) {
         const recDate = new Date(rec.createdDate)
         if (dateRange.from && recDate < dateRange.from) return
         if (dateRange.to && recDate > dateRange.to) return
       }
 
-      // Sub-category filter (applied here if selectedSubCategory is not empty)
       if (selectedSubCategory.length > 0 && !selectedSubCategory.includes(rec.subCategory)) {
         return
       }
-
-      // Count by category
       counts[rec.category] = (counts[rec.category] || 0) + 1
     })
-
     return counts
   }
 
@@ -320,11 +277,9 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
   useEffect(() => {
     const activeView = getActiveView()
     setSelectedPriorities(new Set(activeView.config.selectedPriorities))
-
     setSelectedProvider(activeView.config.selectedProvider)
     setSelectedType(activeView.config.selectedType)
-    setSelectedStatuses(new Set(activeView.config.selectedStatuses)) // Updated selectedStatuses from active view
-    // Only set categories from view if there's no initialCategoryFilter
+    setSelectedStatuses(new Set(activeView.config.selectedStatuses))
     if (!initialCategoryFilter) {
       setSelectedCategories(activeView.config.selectedCategories?.[0] || categories[0].id)
     }
@@ -343,7 +298,6 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
 
   useEffect(() => {
     if (openFilters.date) {
-      // Small delay to ensure popover is fully rendered before showing calendar
       const timer = setTimeout(() => {
         setIsDateCalendarMounted(true)
       }, 50)
@@ -535,25 +489,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
     return `${selectedSubCategory.length} selected`
   }
 
-  // const isSortActive = sortRules.length > 0
-
-  // const getSortLabel = () => {
-  //   if (sortRules.length === 0) return ""
-  //   if (sortRules.length === 1) {
-  //     const rule = sortRules[0]
-  //     const sortLabels: Record<string, string> = {
-  //       savings: "Savings",
-  //       priority: "Priority",
-  //       effort: "Effort",
-  //       category: "Category",
-  //       owner: "Owner",
-  //       status: "Status",
-  //     }
-  //     const directionIcon = rule.direction === "desc" ? "↓" : "↑"
-  //     return `${sortLabels[rule.field]} ${directionIcon}`
-  //   }
-  //   return `${sortRules.length} rules`
-  // }
+  const isCloudManagement = dataSource === "cloud"
 
   const isDateActive = dateRange?.from !== undefined || dateRange?.to !== undefined
   const isProviderActive = selectedProvider !== "all"
@@ -566,38 +502,24 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
     selectedStatuses.has("Marked for review") &&
     selectedStatuses.has("Re-visit")
   )
-  const isCategoryActive = true // Assuming category is always active because it's the primary filter
+  const isCategoryActive = true
   const isCategoryActivePendingReview = selectedCategoriesPendingReview.size !== categories.length
 
   const isTagTypeActive = selectedTagTypes.size > 0
   const isTagValueActive = selectedTagValues.size > 0
   const isSubCategoryActive = selectedSubCategory.length > 0
 
-  // const isSortActive = sortBy !== "savings" || sortDirection !== "desc" // Original line removed
-
   const getAvailableFilters = () => {
     const filters = []
-    // 1. Sub-category (type only) - hide if sub-category filter is already showing
     if (!isTypeActive && !(categorySubCategories[selectedCategories]?.length > 0)) {
       filters.push({ id: "type", label: "Sub-category" })
     }
 
-    // 2. Priority
     if (!isPriorityActive) filters.push({ id: "priority", label: "Priority" })
-
-    // 3. Status
     if (!isStatusActive) filters.push({ id: "status", label: "Status" })
-
-    // 4. Date
     if (!isDateActive) filters.push({ id: "date", label: "Date" })
-
-    // 5. Provider
     if (!isProviderActive) filters.push({ id: "provider", label: "Provider" })
-
-    // 6. Tag Types
     if (!isTagTypeActive) filters.push({ id: "tagType", label: "Tag Types" })
-
-    // 7. Tag Values
     if (!isTagValueActive) filters.push({ id: "tagValue", label: "Tag Values" })
 
     return filters
@@ -632,17 +554,11 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
       case "effort":
         toggleFilter("effort", true)
         break
-      case "subCategory":
-        // No popover for subcategory, it's rendered directly
-        break
     }
     setAddFilterOpen(false)
   }
 
-  // Removed all Sort-related functions: addSortRule, updateSortRule, removeSortRule, handleDragStart, handleDragOver, handleDragEnd
-
   const handleSaveView = (name: string) => {
-    // Get the default view configuration
     const defaultView = views.find((v) => v.isDefault)
     const templateConfig = defaultView?.config || {
       selectedPriorities: ["high", "medium", "low"],
@@ -656,7 +572,6 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
       dateRange: undefined,
     }
 
-    // Save new view using default view configuration as template
     saveView(name, templateConfig)
 
     setSelectedPriorities(new Set(templateConfig.selectedPriorities))
@@ -682,7 +597,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
       selectedTagValues: Array.from(selectedTagValues),
       groupBy,
       dateRange,
-      selectedSubCategory, // Update selected sub-categories array
+      selectedSubCategory,
     })
   }
 
@@ -696,7 +611,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
     selectedTagValues: Array.from(selectedTagValues),
     groupBy,
     dateRange,
-    selectedSubCategory, // Check selected sub-categories array for unsaved changes
+    selectedSubCategory,
   })
 
   const handleSubCategoryChange = (subCategory: string, checked: boolean) => {
@@ -711,7 +626,6 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
     if (checked) {
       setSelectedSubCategory([])
     } else {
-      // If unchecking "All", select all individual sub-categories
       const allSubCategories = categorySubCategories[selectedCategories] || []
       setSelectedSubCategory(allSubCategories)
     }
@@ -732,6 +646,28 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
   const averageSavings =
     actionedRecommendations.length > 0 ? Math.round(totalSavings / actionedRecommendations.length) : 0
 
+  const getCloudLabel = () => {
+    if (selectedProvider === "all") return "All Clouds"
+    const cloudProviderMap: Record<string, string> = {
+      azure: "Azure",
+      aws: "AWS",
+      gcp: "GCP",
+    }
+    return cloudProviderMap[selectedProvider] || "All Clouds"
+  }
+
+  const getSavingsLabel = () => {
+    return "All Savings"
+  }
+
+  const getCostLabel = () => {
+    return "All Costs"
+  }
+
+  const getDurationLabel = () => {
+    return "All Durations"
+  }
+
   return (
     <div className="p-4 space-y-4">
       <div>
@@ -743,10 +679,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
         activeViewId={activeViewId}
         onViewChange={handleViewChange}
         onSaveView={handleSaveView}
-        onUpdateView={handleUpdateView} // Pass update handler
+        onUpdateView={handleUpdateView}
         onDeleteView={deleteView}
         onRenameView={renameView}
-        hasUnsavedChanges={currentHasUnsavedChanges} // Pass unsaved changes flag
+        hasUnsavedChanges={currentHasUnsavedChanges}
       />
 
       <div className="space-y-4 relative z-10">
@@ -771,81 +707,72 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
           {activeViewId !== "snoozed-archived" && activeViewId !== "pending-review" && activeViewId !== "actioned" && (
             <>
               {/* 1. Category Filter - Always first */}
-              {(openFilters.category || isCategoryActive) && (
-                <Popover
-                  open={openFilters.category}
-                  onOpenChange={(open) => {
-                    console.log("[v0] Category button clicked", { openFilters, currentState: openFilters.category })
-                    toggleFilter("category", open)
-                  }}
-                >
-                  <PopoverAnchor asChild>
-                    <Button
-                      variant="outline"
-                      onClick={(e) => {
-                        console.log("[v0] Category button clicked", { openFilters, currentState: openFilters.category })
-                        e.stopPropagation()
-                        toggleFilter("category", !openFilters.category)
-                      }}
-                      className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-blue-50 border-blue-200 hover:bg-blue-100"
-                    >
-                      <span className="font-medium">Category:</span>
-                      <span>{getCategoryLabel()}</span>
-                      <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
-                    </Button>
-                  </PopoverAnchor>
-                  <PopoverContent className="w-64 p-3 z-50" align="start">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-sm">Category</h4>
-                      </div>
-                      <div className="space-y-2">
-                        {categories.map((category) => {
-                          const isSelected = selectedCategories === category.id
-                          const count = categoryCounts[category.id] || 0
-                          return (
-                            <button
-                              key={category.id}
-                              onClick={() => {
-                                handleCategoryChange(category.id)
-                                toggleFilter("category", false)
-                              }}
-                              className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${
-                                isSelected ? "bg-blue-50 text-blue-700 font-medium" : "hover:bg-accent text-foreground"
-                              }`}
-                            >
-                              <span>{category.id}</span>
-                              <span className="text-xs text-muted-foreground">({count})</span>
-                            </button>
-                          )
-                        })}
-                      </div>
+              <Popover
+                open={openFilters.category}
+                onOpenChange={(open) => {
+                  console.log("[v0] Category popover state change", { open })
+                  toggleFilter("category", open)
+                }}
+              >
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-8 gap-1.5 px-3 text-sm relative z-10 bg-blue-50 border-blue-200 hover:bg-blue-100"
+                  >
+                    <span className="font-medium">Category:</span>
+                    <span>{getCategoryLabel()}</span>
+                    <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-3 z-50" align="start">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm">Category</h4>
                     </div>
-                  </PopoverContent>
-                </Popover>
-              )}
+                    <div className="space-y-2">
+                      {categories.map((category) => {
+                        const isSelected = selectedCategories === category.id
+                        const count = categoryCounts[category.id] || 0
+                        return (
+                          <button
+                            key={category.id}
+                            onClick={() => {
+                              handleCategoryChange(category.id)
+                              toggleFilter("category", false)
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${
+                              isSelected ? "bg-blue-50 text-blue-700 font-medium" : "hover:bg-accent text-foreground"
+                            }`}
+                          >
+                            <span>{category.id}</span>
+                            <span className="text-xs text-muted-foreground">({count})</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
 
               {/* 2. Sub-category Filter - Always second (right after Category) */}
               {categorySubCategories[selectedCategories]?.length > 0 && (
-                <Popover open={openFilters.subCategory} onOpenChange={(open) => toggleFilter("subCategory", open)}>
-                  <PopoverAnchor asChild>
+                <Popover
+                  open={openFilters.subCategory}
+                  onOpenChange={(open) => {
+                    console.log("[v0] Sub-category popover state change", { open })
+                    toggleFilter("subCategory", open)
+                  }}
+                >
+                  <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      onClick={(e) => {
-                        console.log("[v0] Sub-category button clicked", {
-                          openFilters,
-                          currentState: openFilters.subCategory,
-                        })
-                        e.stopPropagation()
-                        toggleFilter("subCategory", !openFilters.subCategory)
-                      }}
-                      className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-blue-50 border-blue-200 hover:bg-blue-100"
+                      className="h-8 gap-1.5 px-3 text-sm relative z-10 bg-blue-50 border-blue-200 hover:bg-blue-100"
                     >
                       <span className="font-medium">Sub-category:</span>
                       <span>{getSubCategoryLabel()}</span>
                       <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </Button>
-                  </PopoverAnchor>
+                  </PopoverTrigger>
                   <PopoverContent className="w-64 p-3 z-50" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -896,239 +823,29 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 </Popover>
               )}
 
-              {/* 3. Priority Filter */}
-              {(openFilters.priority || isPriorityActive) && (
-                <Popover open={openFilters.priority} onOpenChange={(open) => toggleFilter("priority", open)}>
-                  <PopoverAnchor asChild>
+              {/* 3. Cloud Filter - Only for cloud management */}
+              {isCloudManagement && (
+                <Popover
+                  open={openFilters.cloud}
+                  onOpenChange={(open) => {
+                    console.log("[v0] Cloud popover state change", { open })
+                    toggleFilter("cloud", open)
+                  }}
+                >
+                  <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      onClick={(e) => {
-                        console.log("[v0] Priority button clicked", { openFilters, currentState: openFilters.priority })
-                        e.stopPropagation()
-                        toggleFilter("priority", !openFilters.priority)
-                      }}
-                      className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
-                        isPriorityActive
-                          ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
-                          : "bg-transparent hover:bg-accent"
-                      }`}
+                      className="h-8 gap-1.5 px-3 text-sm relative z-10 bg-blue-50 border-blue-200 hover:bg-blue-100"
                     >
-                      <span className="font-medium">Priority:</span>
-                      <span>{getPriorityLabel()}</span>
+                      <span className="font-medium">Cloud:</span>
+                      <span>{getCloudLabel()}</span>
                       <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </Button>
-                  </PopoverAnchor>
+                  </PopoverTrigger>
                   <PopoverContent className="w-64 p-3 z-50" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-sm">Priority</h4>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedPriorities(new Set(["high", "medium", "low"]))}
-                          className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
-                        >
-                          Clear
-                        </Button>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="high-priority"
-                            checked={selectedPriorities.has("high")}
-                            onCheckedChange={(checked) => handlePriorityChange("high", checked as boolean)}
-                          />
-                          <label htmlFor="high-priority" className="text-sm cursor-pointer">
-                            High Priority
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="medium-priority"
-                            checked={selectedPriorities.has("medium")}
-                            onCheckedChange={(checked) => handlePriorityChange("medium", checked as boolean)}
-                          />
-                          <label htmlFor="medium-priority" className="text-sm cursor-pointer">
-                            Medium Priority
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="low-priority"
-                            checked={selectedPriorities.has("low")}
-                            onCheckedChange={(checked) => handlePriorityChange("low", checked as boolean)}
-                          />
-                          <label htmlFor="low-priority" className="text-sm cursor-pointer">
-                            Low Priority
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
-
-              {/* 4. Status Filter */}
-              {(openFilters.status || isStatusActive) && (
-                <Popover open={openFilters.status} onOpenChange={(open) => toggleFilter("status", open)}>
-                  <PopoverAnchor asChild>
-                    <Button
-                      variant="outline"
-                      onClick={(e) => {
-                        console.log("[v0] Status button clicked", { openFilters, currentState: openFilters.status })
-                        e.stopPropagation()
-                        toggleFilter("status", !openFilters.status)
-                      }}
-                      className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
-                        isStatusActive
-                          ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
-                          : "bg-transparent hover:bg-accent"
-                      }`}
-                    >
-                      <span className="font-medium">Status:</span>
-                      <span>{getStatusLabel()}</span>
-                      <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
-                    </Button>
-                  </PopoverAnchor>
-                  <PopoverContent className="w-64 p-3 z-50" align="start">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-sm">Status</h4>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            setSelectedStatuses(new Set(["New", "Viewed", "Marked for review", "Re-visit"]))
-                          }
-                          className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
-                        >
-                          Clear
-                        </Button>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="status-new"
-                            checked={selectedStatuses.has("New")}
-                            onCheckedChange={(checked) => handleStatusChange("New", checked as boolean)}
-                          />
-                          <label htmlFor="status-new" className="text-sm flex-1 cursor-pointer">
-                            New
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="status-viewed"
-                            checked={selectedStatuses.has("Viewed")}
-                            onCheckedChange={(checked) => handleStatusChange("Viewed", checked as boolean)}
-                          />
-                          <label htmlFor="status-viewed" className="text-sm flex-1 cursor-pointer">
-                            Viewed
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="status-marked-review"
-                            checked={selectedStatuses.has("Marked for review")}
-                            onCheckedChange={(checked) => handleStatusChange("Marked for review", checked as boolean)}
-                          />
-                          <label htmlFor="status-marked-review" className="text-sm flex-1 cursor-pointer">
-                            Marked for review
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="status-revisit"
-                            checked={selectedStatuses.has("Re-visit")}
-                            onCheckedChange={(checked) => handleStatusChange("Re-visit", checked as boolean)}
-                          />
-                          <label htmlFor="status-revisit" className="text-sm flex-1 cursor-pointer">
-                            Re-visit
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
-
-              {/* 5. Date Filter */}
-              {(openFilters.date || isDateActive) && (
-                <Popover open={openFilters.date} onOpenChange={(open) => toggleFilter("date", open)}>
-                  <PopoverAnchor asChild>
-                    <Button
-                      variant="outline"
-                      onClick={(e) => {
-                        console.log("[v0] Date button clicked", { openFilters, currentState: openFilters.date })
-                        e.stopPropagation()
-                        toggleFilter("date", !openFilters.date)
-                      }}
-                      className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
-                        isDateActive ? "bg-blue-50 border-blue-200 hover:bg-blue-100" : "bg-transparent hover:bg-accent"
-                      }`}
-                    >
-                      <CalendarIcon className="w-3.5 h-3.5" />
-                      <span className="font-medium">Date:</span>
-                      <span>{getDateLabel()}</span>
-                      <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
-                    </Button>
-                  </PopoverAnchor>
-                  <PopoverContent
-                    className="w-auto p-0 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-2 data-[state=open]:duration-200 data-[state=closed]:duration-150"
-                    align="start"
-                  >
-                    <div className="p-3 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-sm">Date Added</h4>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDateRange(undefined)}
-                          className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
-                        >
-                          Clear
-                        </Button>
-                      </div>
-                      {isDateCalendarMounted && (
-                        <Calendar
-                          mode="range"
-                          selected={dateRange}
-                          onSelect={setDateRange}
-                          numberOfMonths={1}
-                          defaultMonth={dateRange?.from || dateRange?.to || new Date()}
-                        />
-                      )}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
-
-              {/* 6. Provider Filter */}
-              {(openFilters.provider || isProviderActive) && (
-                <Popover open={openFilters.provider} onOpenChange={(open) => toggleFilter("provider", open)}>
-                  <PopoverAnchor asChild>
-                    <Button
-                      variant="outline"
-                      onClick={(e) => {
-                        console.log("[v0] Provider button clicked", { openFilters, currentState: openFilters.provider })
-                        e.stopPropagation()
-                        toggleFilter("provider", !openFilters.provider)
-                      }}
-                      className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
-                        isProviderActive
-                          ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
-                          : "bg-transparent hover:bg-accent"
-                      }`}
-                    >
-                      <span className="font-medium">Provider:</span>
-                      <span>{getProviderLabel()}</span>
-                      <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
-                    </Button>
-                  </PopoverAnchor>
-                  <PopoverContent className="w-64 p-3 z-50" align="start">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-sm">Provider</h4>
+                        <h4 className="font-semibold text-sm">Cloud</h4>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -1144,23 +861,11 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All ({totalRecommendations})</SelectItem>
-                          {dataSource === "saas" ? (
-                            <>
-                              {availableProviders.map((provider) => (
-                                <SelectItem key={provider.id} value={provider.id}>
-                                  {provider.label} ({providerCounts[provider.id] || 0})
-                                </SelectItem>
-                              ))}
-                            </>
-                          ) : (
-                            <>
-                              {availableProviders.map((provider) => (
-                                <SelectItem key={provider.id} value={provider.id}>
-                                  {provider.label} ({providerCounts[provider.id] || 0})
-                                </SelectItem>
-                              ))}
-                            </>
-                          )}
+                          {cloudProviders.map((provider) => (
+                            <SelectItem key={provider.id} value={provider.id}>
+                              {provider.label} ({providerCounts[provider.id] || 0})
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -1168,273 +873,399 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 </Popover>
               )}
 
-              {/* 7. Issue Type Filter */}
-              {(openFilters.type || isTypeActive) && (
-                <Popover open={openFilters.type} onOpenChange={(open) => toggleFilter("type", open)}>
-                  <PopoverAnchor asChild>
-                    <Button
-                      variant="outline"
-                      onClick={(e) => {
-                        console.log("[v0] Type button clicked", { openFilters, currentState: openFilters.type })
-                        e.stopPropagation()
-                        toggleFilter("type", !openFilters.type)
-                      }}
-                      className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
-                        isTypeActive ? "bg-blue-50 border-blue-200 hover:bg-blue-100" : "bg-transparent hover:bg-accent"
-                      }`}
-                    >
-                      <span className="font-medium">Sub-category:</span>
-                      <span>{getTypeLabel()}</span>
-                      <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
-                    </Button>
-                  </PopoverAnchor>
-                  <PopoverContent className="w-64 p-3 z-50" align="start">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-sm">Sub-category</h4>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedSubCategory([])}
-                          className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
-                        >
-                          Clear
-                        </Button>
+              {/* 4. Priority Filter */}
+              <Popover
+                open={openFilters.priority}
+                onOpenChange={(open) => {
+                  console.log("[v0] Priority popover state change", { open })
+                  toggleFilter("priority", open)
+                }}
+              >
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-8 gap-1.5 px-3 text-sm relative z-10 bg-transparent">
+                    <span className="font-medium">Priority:</span>
+                    <span>{getPriorityLabel()}</span>
+                    <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-3 z-50" align="start">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm">Priority</h4>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedPriorities(new Set(["high", "medium", "low"]))}
+                        className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="high-priority"
+                          checked={selectedPriorities.has("high")}
+                          onCheckedChange={(checked) => handlePriorityChange("high", checked as boolean)}
+                        />
+                        <label htmlFor="high-priority" className="text-sm cursor-pointer">
+                          High Priority
+                        </label>
                       </div>
-                      <div className="space-y-2.5">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="sub-category-all"
-                            checked={selectedSubCategory.length === 0}
-                            onCheckedChange={(checked) => handleAllSubCategoriesChange(checked as boolean)}
-                          />
-                          <label htmlFor="sub-category-all" className="text-sm flex-1 cursor-pointer">
-                            All
-                          </label>
-                          <span className="text-xs text-muted-foreground">({totalSubCategoryCount})</span>
-                        </div>
-                        <div className="border-t border-border" />
-                        {categorySubCategories[selectedCategories]?.map((subCategory) => (
-                          <div key={subCategory} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`sub-category-${subCategory}`}
-                              checked={selectedSubCategory.includes(subCategory)}
-                              onCheckedChange={(checked) => handleSubCategoryChange(subCategory, checked as boolean)}
-                            />
-                            <label htmlFor={`sub-category-${subCategory}`} className="text-sm flex-1 cursor-pointer">
-                              {subCategory}
-                            </label>
-                            <span className="text-xs text-muted-foreground">
-                              ({subCategoryCounts[subCategory] || 0})
-                            </span>
-                          </div>
-                        ))}
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="medium-priority"
+                          checked={selectedPriorities.has("medium")}
+                          onCheckedChange={(checked) => handlePriorityChange("medium", checked as boolean)}
+                        />
+                        <label htmlFor="medium-priority" className="text-sm cursor-pointer">
+                          Medium Priority
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="low-priority"
+                          checked={selectedPriorities.has("low")}
+                          onCheckedChange={(checked) => handlePriorityChange("low", checked as boolean)}
+                        />
+                        <label htmlFor="low-priority" className="text-sm cursor-pointer">
+                          Low Priority
+                        </label>
                       </div>
                     </div>
-                  </PopoverContent>
-                </Popover>
-              )}
+                  </div>
+                </PopoverContent>
+              </Popover>
 
-              {/* 8. Tag Types Filter */}
-              {(openFilters.tagType || isTagTypeActive) && (
-                <Popover open={openFilters.tagType} onOpenChange={(open) => toggleFilter("tagType", open)}>
-                  <PopoverAnchor asChild>
-                    <Button
-                      variant="outline"
-                      onClick={(e) => {
-                        console.log("[v0] Tag Type button clicked", { openFilters, currentState: openFilters.tagType })
-                        e.stopPropagation()
-                        toggleFilter("tagType", !openFilters.tagType)
-                      }}
-                      className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
-                        isTagTypeActive
-                          ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
-                          : "bg-transparent hover:bg-accent"
-                      }`}
-                    >
-                      <span className="font-medium">Tag Types:</span>
-                      <span>{getTagTypeLabel()}</span>
-                      <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
-                    </Button>
-                  </PopoverAnchor>
-                  <PopoverContent className="w-64 p-3 z-50" align="start">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-sm">Tag Types</h4>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedTagTypes(new Set())}
-                          className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
-                        >
-                          Clear
-                        </Button>
+              {/* 5. Status Filter */}
+              <Popover
+                open={openFilters.status}
+                onOpenChange={(open) => {
+                  console.log("[v0] Status popover state change", { open })
+                  toggleFilter("status", open)
+                }}
+              >
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-8 gap-1.5 px-3 text-sm relative z-10 bg-transparent">
+                    <span className="font-medium">Status:</span>
+                    <span>{getStatusLabel()}</span>
+                    <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-3 z-50" align="start">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm">Status</h4>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedStatuses(new Set(["New", "Viewed", "Marked for review", "Re-visit"]))}
+                        className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="status-new"
+                          checked={selectedStatuses.has("New")}
+                          onCheckedChange={(checked) => handleStatusChange("New", checked as boolean)}
+                        />
+                        <label htmlFor="status-new" className="text-sm flex-1 cursor-pointer">
+                          New
+                        </label>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="tag-cost-allocation"
-                            checked={selectedTagTypes.has("Cost-allocation-type")}
-                            onCheckedChange={(checked) =>
-                              handleTagTypeChange("Cost-allocation-type", checked as boolean)
-                            }
-                          />
-                          <label htmlFor="tag-cost-allocation" className="text-sm flex-1 cursor-pointer">
-                            Cost-allocation-type
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="tag-cost-center"
-                            checked={selectedTagTypes.has("Cost-center")}
-                            onCheckedChange={(checked) => handleTagTypeChange("Cost-center", checked as boolean)}
-                          />
-                          <label htmlFor="tag-cost-center" className="text-sm flex-1 cursor-pointer">
-                            Cost-center
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="tag-environment"
-                            checked={selectedTagTypes.has("Environment")}
-                            onCheckedChange={(checked) => handleTagTypeChange("Environment", checked as boolean)}
-                          />
-                          <label htmlFor="tag-environment" className="text-sm flex-1 cursor-pointer">
-                            Environment
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="tag-portfolio"
-                            checked={selectedTagTypes.has("Portfolio")}
-                            onCheckedChange={(checked) => handleTagTypeChange("Portfolio", checked as boolean)}
-                          />
-                          <label htmlFor="tag-portfolio" className="text-sm flex-1 cursor-pointer">
-                            Portfolio
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="tag-shared-cost"
-                            checked={selectedTagTypes.has("Shared-cost-type")}
-                            onCheckedChange={(checked) => handleTagTypeChange("Shared-cost-type", checked as boolean)}
-                          />
-                          <label htmlFor="tag-shared-cost" className="text-sm flex-1 cursor-pointer">
-                            Shared-cost-type
-                          </label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="tag-sub-portfolio"
-                            checked={selectedTagTypes.has("Sub-portfolio")}
-                            onCheckedChange={(checked) => handleTagTypeChange("Sub-portfolio", checked as boolean)}
-                          />
-                          <label htmlFor="tag-sub-portfolio" className="text-sm flex-1 cursor-pointer">
-                            Sub-portfolio
-                          </label>
-                        </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="status-viewed"
+                          checked={selectedStatuses.has("Viewed")}
+                          onCheckedChange={(checked) => handleStatusChange("Viewed", checked as boolean)}
+                        />
+                        <label htmlFor="status-viewed" className="text-sm flex-1 cursor-pointer">
+                          Viewed
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="status-marked-review"
+                          checked={selectedStatuses.has("Marked for review")}
+                          onCheckedChange={(checked) => handleStatusChange("Marked for review", checked as boolean)}
+                        />
+                        <label htmlFor="status-marked-review" className="text-sm flex-1 cursor-pointer">
+                          Marked for review
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="status-revisit"
+                          checked={selectedStatuses.has("Re-visit")}
+                          onCheckedChange={(checked) => handleStatusChange("Re-visit", checked as boolean)}
+                        />
+                        <label htmlFor="status-revisit" className="text-sm flex-1 cursor-pointer">
+                          Re-visit
+                        </label>
                       </div>
                     </div>
-                  </PopoverContent>
-                </Popover>
-              )}
+                  </div>
+                </PopoverContent>
+              </Popover>
 
-              {/* 9. Tag Values Filter */}
-              {(openFilters.tagValue || isTagValueActive) && (
-                <Popover open={openFilters.tagValue} onOpenChange={(open) => toggleFilter("tagValue", open)}>
-                  <PopoverAnchor asChild>
-                    <Button
-                      variant="outline"
-                      onClick={(e) => {
-                        console.log("[v0] Tag Value button clicked", {
-                          openFilters,
-                          currentState: openFilters.tagValue,
-                        })
-                        e.stopPropagation()
-                        toggleFilter("tagValue", !openFilters.tagValue)
-                      }}
-                      className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
-                        isTagValueActive
-                          ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
-                          : "bg-transparent hover:bg-accent"
-                      }`}
-                    >
-                      <span className="font-medium">Tag Values:</span>
-                      <span>{getTagValueLabel()}</span>
-                      <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
-                    </Button>
-                  </PopoverAnchor>
-                  <PopoverContent className="w-80 p-3 z-50" align="start">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-sm">Tag Values</h4>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedTagValues(new Set())}
-                          className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
-                        >
-                          Clear
-                        </Button>
+              {/* 6. Savings Filter */}
+              <Popover
+                open={openFilters.savings}
+                onOpenChange={(open) => {
+                  console.log("[v0] Savings popover state change", { open })
+                  toggleFilter("savings", open)
+                }}
+              >
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-8 gap-1.5 px-3 text-sm relative z-10 bg-transparent">
+                    <span className="font-medium">Savings:</span>
+                    <span>{getSavingsLabel()}</span>
+                    <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-3 z-50" align="start">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm">Savings</h4>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleFilter("savings", false)}
+                        className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="savings-all" />
+                        <label htmlFor="savings-all" className="text-sm cursor-pointer">
+                          All Savings
+                        </label>
                       </div>
-                      <div className="space-y-2 max-h-80 overflow-y-auto">
-                        {tagValues.map((tagValue) => (
-                          <div key={tagValue} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`tag-value-${tagValue}`}
-                              checked={selectedTagValues.has(tagValue)}
-                              onCheckedChange={(checked) => handleTagValueChange(tagValue, checked as boolean)}
-                            />
-                            <label htmlFor={`tag-value-${tagValue}`} className="text-sm flex-1 cursor-pointer">
-                              {tagValue}
-                            </label>
-                          </div>
-                        ))}
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="savings-significant" />
+                        <label htmlFor="savings-significant" className="text-sm cursor-pointer">
+                          Significant Savings
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="savings-moderate" />
+                        <label htmlFor="savings-moderate" className="text-sm cursor-pointer">
+                          Moderate Savings
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="savings-minor" />
+                        <label htmlFor="savings-minor" className="text-sm cursor-pointer">
+                          Minor Savings
+                        </label>
                       </div>
                     </div>
-                  </PopoverContent>
-                </Popover>
-              )}
+                  </div>
+                </PopoverContent>
+              </Popover>
 
-              {/* 10. Add Filter Button - Always last */}
-              {getAvailableFilters().length > 0 && (
-                <Popover
-                  open={addFilterOpen}
-                  onOpenChange={(open) => {
-                    console.log("[v0] Add filter popover onOpenChange", { open })
-                    setAddFilterOpen(open)
-                  }}
+              {/* 7. Cost Filter */}
+              <Popover
+                open={openFilters.cost}
+                onOpenChange={(open) => {
+                  console.log("[v0] Cost popover state change", { open })
+                  toggleFilter("cost", open)
+                }}
+              >
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-8 gap-1.5 px-3 text-sm relative z-10 bg-transparent">
+                    <span className="font-medium">Cost:</span>
+                    <span>{getCostLabel()}</span>
+                    <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-3 z-50" align="start">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm">Cost</h4>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleFilter("cost", false)}
+                        className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="cost-all" />
+                        <label htmlFor="cost-all" className="text-sm cursor-pointer">
+                          All Costs
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="cost-high" />
+                        <label htmlFor="cost-high" className="text-sm cursor-pointer">
+                          High Cost
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="cost-medium" />
+                        <label htmlFor="cost-medium" className="text-sm cursor-pointer">
+                          Medium Cost
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="cost-low" />
+                        <label htmlFor="cost-low" className="text-sm cursor-pointer">
+                          Low Cost
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* 8. Date Filter */}
+              <Popover
+                open={openFilters.date}
+                onOpenChange={(open) => {
+                  console.log("[v0] Date popover state change", { open })
+                  toggleFilter("date", open)
+                }}
+              >
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
+                      isDateActive ? "bg-blue-50 border-blue-200 hover:bg-blue-100" : "bg-transparent hover:bg-accent"
+                    }`}
+                  >
+                    <CalendarIcon className="w-3.5 h-3.5" />
+                    <span className="font-medium">Date:</span>
+                    <span>{getDateLabel()}</span>
+                    <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto p-0 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-2 data-[state=open]:duration-200 data-[state=closed]:duration-150"
+                  align="start"
                 >
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      onClick={(e) => {
-                        console.log("[v0] Add Filter button clicked", { addFilterOpen })
-                      }}
-                      className="h-8 gap-1.5 px-3 text-sm text-muted-foreground hover:text-foreground bg-transparent relative z-10 pointer-events-auto"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      Filter
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-56 p-2 z-50" align="start">
-                    <div className="space-y-1">
-                      <div className="px-2 py-1.5">
-                        <Input type="text" placeholder="Filter by..." className="h-8 text-sm" />
-                      </div>
-                      {getAvailableFilters().map((filter) => (
-                        <button
-                          key={filter.id}
-                          onClick={() => addFilter(filter.id)}
-                          className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
-                        >
-                          {filter.label}
-                        </button>
-                      ))}
+                  <div className="p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm">Date Added</h4>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDateRange(undefined)}
+                        className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Clear
+                      </Button>
                     </div>
-                  </PopoverContent>
-                </Popover>
-              )}
+                    {isDateCalendarMounted && (
+                      <Calendar
+                        mode="range"
+                        selected={dateRange}
+                        onSelect={setDateRange}
+                        numberOfMonths={1}
+                        defaultMonth={dateRange?.from || dateRange?.to || new Date()}
+                      />
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* 9. Duration Filter */}
+              <Popover
+                open={openFilters.duration}
+                onOpenChange={(open) => {
+                  console.log("[v0] Duration popover state change", { open })
+                  toggleFilter("duration", open)
+                }}
+              >
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-8 gap-1.5 px-3 text-sm relative z-10 bg-transparent">
+                    <span className="font-medium">Duration:</span>
+                    <span>{getDurationLabel()}</span>
+                    <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-3 z-50" align="start">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm">Duration</h4>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleFilter("duration", false)}
+                        className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="duration-all" />
+                        <label htmlFor="duration-all" className="text-sm cursor-pointer">
+                          All Durations
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="duration-short" />
+                        <label htmlFor="duration-short" className="text-sm cursor-pointer">
+                          Short Duration
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="duration-medium" />
+                        <label htmlFor="duration-medium" className="text-sm cursor-pointer">
+                          Medium Duration
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox id="duration-long" />
+                        <label htmlFor="duration-long" className="text-sm cursor-pointer">
+                          Long Duration
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* 10. Add Filter Button (last) */}
+              <Popover
+                open={addFilterOpen}
+                onOpenChange={(open) => {
+                  console.log("[v0] Add filter popover state change", { open })
+                  setAddFilterOpen(open)
+                }}
+              >
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 px-3 text-sm bg-transparent">
+                    <Plus className="w-3.5 h-3.5 mr-1.5" />
+                    Add Filter
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-3 z-50" align="start">
+                  <div className="space-y-1">
+                    <div className="px-2 py-1.5">
+                      <Input type="text" placeholder="Filter by..." className="h-8 text-sm" />
+                    </div>
+                    {getAvailableFilters().map((filter) => (
+                      <button
+                        key={filter.id}
+                        onClick={() => addFilter(filter.id)}
+                        className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
+                      >
+                        {filter.label}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
 
               <div className="flex items-center gap-1.5">
                 <Select value={groupBy} onValueChange={setGroupBy}>
@@ -1516,23 +1347,17 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 <Popover
                   open={addFilterOpen}
                   onOpenChange={(open) => {
-                    console.log("[v0] Add filter popover onOpenChange", { open })
+                    console.log("[v0] Add filter popover state change", { open })
                     setAddFilterOpen(open)
                   }}
                 >
                   <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      onClick={(e) => {
-                        console.log("[v0] Add Filter button clicked", { addFilterOpen })
-                      }}
-                      className="h-8 gap-1.5 px-3 text-sm text-muted-foreground hover:text-foreground bg-transparent relative z-10 pointer-events-auto"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      Filter
+                    <Button variant="outline" size="sm" className="h-8 px-3 text-sm bg-transparent">
+                      <Plus className="w-3.5 h-3.5 mr-1.5" />
+                      Add Filter
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-56 p-2 z-50" align="start">
+                  <PopoverContent className="w-64 p-3 z-50" align="start">
                     <div className="space-y-1">
                       <div className="px-2 py-1.5">
                         <Input type="text" placeholder="Filter by..." className="h-8 text-sm" />
@@ -1610,7 +1435,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 (openFilters.category || isCategoryActivePendingReview) && (
                   <Popover open={openFilters.category} onOpenChange={(open) => toggleFilter("category", open)}>
-                    <PopoverAnchor asChild>
+                    <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         onClick={(e) => {
@@ -1631,7 +1456,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>{getCategoryLabel()}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverAnchor>
+                    </PopoverTrigger>
                     <PopoverContent className="w-64 p-3 z-50" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -1693,7 +1518,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 (openFilters.priority || isPriorityActive) && (
                   <Popover open={openFilters.priority} onOpenChange={(open) => toggleFilter("priority", open)}>
-                    <PopoverAnchor asChild>
+                    <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         onClick={(e) => {
@@ -1714,7 +1539,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>{getPriorityLabel()}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverAnchor>
+                    </PopoverTrigger>
                     <PopoverContent className="w-64 p-3 z-50" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -1770,7 +1595,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 (openFilters.provider || isProviderActive) && (
                   <Popover open={openFilters.provider} onOpenChange={(open) => toggleFilter("provider", open)}>
-                    <PopoverAnchor asChild>
+                    <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         onClick={(e) => {
@@ -1791,7 +1616,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>{getProviderLabel()}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverAnchor>
+                    </PopoverTrigger>
                     <PopoverContent className="w-64 p-3 z-50" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -1840,7 +1665,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 (openFilters.date || isDateActive) && (
                   <Popover open={openFilters.date} onOpenChange={(open) => toggleFilter("date", open)}>
-                    <PopoverAnchor asChild>
+                    <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         onClick={(e) => {
@@ -1862,7 +1687,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>{getDateLabel()}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverAnchor>
+                    </PopoverTrigger>
                     <PopoverContent
                       className="w-auto p-0 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-2 data-[state=open]:duration-200 data-[state=closed]:duration-150"
                       align="start"
@@ -1898,7 +1723,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 (openFilters.tagType || isTagTypeActive) && (
                   <Popover open={openFilters.tagType} onOpenChange={(open) => toggleFilter("tagType", open)}>
-                    <PopoverAnchor asChild>
+                    <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         onClick={(e) => {
@@ -1919,7 +1744,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>{getTagTypeLabel()}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverAnchor>
+                    </PopoverTrigger>
                     <PopoverContent className="w-64 p-3 z-50" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -2007,7 +1832,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 (openFilters.tagValue || isTagValueActive) && (
                   <Popover open={openFilters.tagValue} onOpenChange={(open) => toggleFilter("tagValue", open)}>
-                    <PopoverAnchor asChild>
+                    <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         onClick={(e) => {
@@ -2028,7 +1853,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>{getTagValueLabel()}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverAnchor>
+                    </PopoverTrigger>
                     <PopoverContent className="w-80 p-3 z-50" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -2069,7 +1894,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 openFilters.effort && (
                   <Popover open={openFilters.effort} onOpenChange={(open) => toggleFilter("effort", open)}>
-                    <PopoverAnchor asChild>
+                    <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         onClick={(e) => {
@@ -2086,7 +1911,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>All</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverAnchor>
+                    </PopoverTrigger>
                     <PopoverContent className="w-64 p-3 z-50" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -2159,7 +1984,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
         dateRange={dateRange}
         selectedSubCategory={selectedSubCategory}
         activeViewId={activeViewId}
-        dataSource={dataSource} // Pass dataSource prop to RecommendationsList
+        dataSource={dataSource}
       />
 
       {activeViewId === "actioned" && (
