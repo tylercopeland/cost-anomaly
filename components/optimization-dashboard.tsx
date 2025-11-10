@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -85,7 +85,7 @@ const tagValues = [
   "sub-portfolio:IT: Security & Compliance",
 ]
 
-export function OptimizationDashboard({ initialCategoryFilter, dataSource = "cloud" }: OptimizationDashboardProps) {
+function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "cloud" }: OptimizationDashboardProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const urlGroupBy = searchParams.get("groupBy")
@@ -202,10 +202,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
       if (!selectedStatuses.has(rec.status)) include = false
 
       // Subcategory filter
-      if (selectedSubCategory.length > 0 && !selectedSubCategory.includes(rec.subCategory)) include = false
+      if (selectedSubCategory.length > 0 && rec.subCategory && !selectedSubCategory.includes(rec.subCategory)) include = false
 
       // Search filter
-      if (searchQuery && !rec.resourceName.toLowerCase().includes(searchQuery.toLowerCase())) include = false
+      if (searchQuery && rec.title && !rec.title.toLowerCase().includes(searchQuery.toLowerCase())) include = false
 
       if (include) {
         const provider = rec.provider || "unknown"
@@ -238,7 +238,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
       if (selectedProvider !== "all" && rec.provider !== selectedProvider) return false
 
       // Search query
-      if (searchQuery && !rec.title.toLowerCase().includes(searchQuery.toLowerCase())) return false
+      if (searchQuery && rec.title && !rec.title.toLowerCase().includes(searchQuery.toLowerCase())) return false
 
       // Date range filter
       if (dateRange?.from || dateRange?.to) {
@@ -248,7 +248,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
       }
 
       // Sub-category filter (applied here if selectedSubCategory is not empty)
-      if (selectedSubCategory.length > 0 && !selectedSubCategory.includes(rec.subCategory)) {
+      if (selectedSubCategory.length > 0 && rec.subCategory && !selectedSubCategory.includes(rec.subCategory)) {
         return false
       }
 
@@ -280,7 +280,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
       if (selectedProvider !== "all" && rec.provider !== selectedProvider) return
 
       // Search query
-      if (searchQuery && !rec.title.toLowerCase().includes(searchQuery.toLowerCase())) return
+      if (searchQuery && rec.title && !rec.title.toLowerCase().includes(searchQuery.toLowerCase())) return
 
       // Date range filter
       if (dateRange?.from || dateRange?.to) {
@@ -290,7 +290,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
       }
 
       // Sub-category filter (applied here if selectedSubCategory is not empty)
-      if (selectedSubCategory.length > 0 && !selectedSubCategory.includes(rec.subCategory)) {
+      if (selectedSubCategory.length > 0 && rec.subCategory && !selectedSubCategory.includes(rec.subCategory)) {
         return
       }
 
@@ -773,22 +773,21 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
               {/* 1. Category Filter - Always first */}
               {(openFilters.category || isCategoryActive) && (
                 <Popover
-                  open={openFilters.category}
+                  open={openFilters.category || false}
                   onOpenChange={(open) => {
                     toggleFilter("category", open)
                   }}
                 >
-                  <PopoverAnchor asChild>
+                  <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      onClick={() => toggleFilter("category", !openFilters.category)}
                       className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-blue-50 border-blue-200 hover:bg-blue-100"
                     >
                       <span className="font-medium">Category:</span>
                       <span>{getCategoryLabel()}</span>
                       <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </Button>
-                  </PopoverAnchor>
+                  </PopoverTrigger>
                   <PopoverContent className="w-64 p-3 z-50" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -822,18 +821,17 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
 
               {/* 2. Sub-category Filter - Always second (right after Category) */}
               {categorySubCategories[selectedCategories]?.length > 0 && (
-                <Popover open={openFilters.subCategory} onOpenChange={(open) => toggleFilter("subCategory", open)}>
-                  <PopoverAnchor asChild>
+                <Popover open={openFilters.subCategory || false} onOpenChange={(open) => toggleFilter("subCategory", open)}>
+                  <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      onClick={() => toggleFilter("subCategory", !openFilters.subCategory)}
                       className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-blue-50 border-blue-200 hover:bg-blue-100"
                     >
                       <span className="font-medium">Sub-category:</span>
                       <span>{getSubCategoryLabel()}</span>
                       <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </Button>
-                  </PopoverAnchor>
+                  </PopoverTrigger>
                   <PopoverContent className="w-64 p-3 z-50" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -1361,16 +1359,15 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                     setAddFilterOpen(open)
                   }}
                 >
-                  <PopoverAnchor asChild>
+                  <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      onClick={() => setAddFilterOpen(!addFilterOpen)}
                       className="h-8 gap-1.5 px-3 text-sm text-muted-foreground hover:text-foreground bg-transparent relative z-10 pointer-events-auto"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Filter
                     </Button>
-                  </PopoverAnchor>
+                  </PopoverTrigger>
                   <PopoverContent className="w-56 p-2 z-50" align="start">
                     <div className="space-y-1">
                       <div className="px-2 py-1.5">
@@ -1558,11 +1555,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "actioned" ||
                 activeViewId === "snoozed-archived") &&
                 (openFilters.category || isCategoryActivePendingReview) && (
-                  <Popover open={openFilters.category} onOpenChange={(open) => toggleFilter("category", open)}>
-                    <PopoverAnchor asChild>
+                  <Popover open={openFilters.category || false} onOpenChange={(open) => toggleFilter("category", open)}>
+                    <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        onClick={() => toggleFilter("category", !openFilters.category)}
                         className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                           isCategoryActivePendingReview
                             ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1573,7 +1569,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>{getCategoryLabel()}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverAnchor>
+                    </PopoverTrigger>
                     <PopoverContent className="w-64 p-3 z-50" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -2084,5 +2080,13 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
         </div>
       )}
     </div>
+  )
+}
+
+export function OptimizationDashboard(props: OptimizationDashboardProps) {
+  return (
+    <Suspense fallback={<div className="p-4">Loading...</div>}>
+      <OptimizationDashboardContent {...props} />
+    </Suspense>
   )
 }
