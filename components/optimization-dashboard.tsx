@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverAnchor, PopoverTrigger } from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Calendar } from "@/components/ui/calendar"
 import type { DateRange } from "react-day-picker"
@@ -778,16 +778,17 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                     toggleFilter("category", open)
                   }}
                 >
-                  <PopoverTrigger asChild>
+                  <PopoverAnchor asChild>
                     <Button
                       variant="outline"
+                      onClick={() => toggleFilter("category", !openFilters.category)}
                       className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-blue-50 border-blue-200 hover:bg-blue-100"
                     >
                       <span className="font-medium">Category:</span>
                       <span>{getCategoryLabel()}</span>
                       <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </Button>
-                  </PopoverTrigger>
+                  </PopoverAnchor>
                   <PopoverContent className="w-64 p-3 z-50" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -822,16 +823,17 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
               {/* 2. Sub-category Filter - Always second (right after Category) */}
               {categorySubCategories[selectedCategories]?.length > 0 && (
                 <Popover open={openFilters.subCategory} onOpenChange={(open) => toggleFilter("subCategory", open)}>
-                  <PopoverTrigger asChild>
+                  <PopoverAnchor asChild>
                     <Button
                       variant="outline"
+                      onClick={() => toggleFilter("subCategory", !openFilters.subCategory)}
                       className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-blue-50 border-blue-200 hover:bg-blue-100"
                     >
                       <span className="font-medium">Sub-category:</span>
                       <span>{getSubCategoryLabel()}</span>
                       <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </Button>
-                  </PopoverTrigger>
+                  </PopoverAnchor>
                   <PopoverContent className="w-64 p-3 z-50" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -885,9 +887,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
               {/* 3. Priority Filter */}
               {(openFilters.priority || isPriorityActive) && (
                 <Popover open={openFilters.priority} onOpenChange={(open) => toggleFilter("priority", open)}>
-                  <PopoverTrigger asChild>
+                  <PopoverAnchor asChild>
                     <Button
                       variant="outline"
+                      onClick={() => toggleFilter("priority", !openFilters.priority)}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isPriorityActive
                           ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -898,7 +901,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                       <span>{getPriorityLabel()}</span>
                       <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </Button>
-                  </PopoverTrigger>
+                  </PopoverAnchor>
                   <PopoverContent className="w-64 p-3 z-50" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -952,9 +955,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
               {/* 4. Status Filter */}
               {(openFilters.status || isStatusActive) && (
                 <Popover open={openFilters.status} onOpenChange={(open) => toggleFilter("status", open)}>
-                  <PopoverTrigger asChild>
+                  <PopoverAnchor asChild>
                     <Button
                       variant="outline"
+                      onClick={() => toggleFilter("status", !openFilters.status)}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isStatusActive
                           ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -965,7 +969,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                       <span>{getStatusLabel()}</span>
                       <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </Button>
-                  </PopoverTrigger>
+                  </PopoverAnchor>
                   <PopoverContent className="w-64 p-3 z-50" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -1031,9 +1035,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
               {/* 5. Date Filter */}
               {(openFilters.date || isDateActive) && (
                 <Popover open={openFilters.date} onOpenChange={(open) => toggleFilter("date", open)}>
-                  <PopoverTrigger asChild>
+                  <PopoverAnchor asChild>
                     <Button
                       variant="outline"
+                      onClick={() => toggleFilter("date", !openFilters.date)}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isDateActive ? "bg-blue-50 border-blue-200 hover:bg-blue-100" : "bg-transparent hover:bg-accent"
                       }`}
@@ -1043,7 +1048,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                       <span>{getDateLabel()}</span>
                       <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </Button>
-                  </PopoverTrigger>
+                  </PopoverAnchor>
                   <PopoverContent
                     className="w-auto p-0 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-2 data-[state=open]:duration-200 data-[state=closed]:duration-150"
                     align="start"
@@ -1077,9 +1082,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
               {/* 6. Provider Filter */}
               {(openFilters.provider || isProviderActive) && (
                 <Popover open={openFilters.provider} onOpenChange={(open) => toggleFilter("provider", open)}>
-                  <PopoverTrigger asChild>
+                  <PopoverAnchor asChild>
                     <Button
                       variant="outline"
+                      onClick={() => toggleFilter("provider", !openFilters.provider)}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isProviderActive
                           ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1090,7 +1096,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                       <span>{getProviderLabel()}</span>
                       <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </Button>
-                  </PopoverTrigger>
+                  </PopoverAnchor>
                   <PopoverContent className="w-64 p-3 z-50" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -1137,9 +1143,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
               {/* 7. Issue Type Filter */}
               {(openFilters.type || isTypeActive) && (
                 <Popover open={openFilters.type} onOpenChange={(open) => toggleFilter("type", open)}>
-                  <PopoverTrigger asChild>
+                  <PopoverAnchor asChild>
                     <Button
                       variant="outline"
+                      onClick={() => toggleFilter("type", !openFilters.type)}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isTypeActive ? "bg-blue-50 border-blue-200 hover:bg-blue-100" : "bg-transparent hover:bg-accent"
                       }`}
@@ -1148,7 +1155,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                       <span>{getTypeLabel()}</span>
                       <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </Button>
-                  </PopoverTrigger>
+                  </PopoverAnchor>
                   <PopoverContent className="w-64 p-3 z-50" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -1199,9 +1206,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
               {/* 8. Tag Types Filter */}
               {(openFilters.tagType || isTagTypeActive) && (
                 <Popover open={openFilters.tagType} onOpenChange={(open) => toggleFilter("tagType", open)}>
-                  <PopoverTrigger asChild>
+                  <PopoverAnchor asChild>
                     <Button
                       variant="outline"
+                      onClick={() => toggleFilter("tagType", !openFilters.tagType)}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isTagTypeActive
                           ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1212,7 +1220,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                       <span>{getTagTypeLabel()}</span>
                       <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </Button>
-                  </PopoverTrigger>
+                  </PopoverAnchor>
                   <PopoverContent className="w-64 p-3 z-50" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -1298,9 +1306,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
               {/* 9. Tag Values Filter */}
               {(openFilters.tagValue || isTagValueActive) && (
                 <Popover open={openFilters.tagValue} onOpenChange={(open) => toggleFilter("tagValue", open)}>
-                  <PopoverTrigger asChild>
+                  <PopoverAnchor asChild>
                     <Button
                       variant="outline"
+                      onClick={() => toggleFilter("tagValue", !openFilters.tagValue)}
                       className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                         isTagValueActive
                           ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1311,7 +1320,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                       <span>{getTagValueLabel()}</span>
                       <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                     </Button>
-                  </PopoverTrigger>
+                  </PopoverAnchor>
                   <PopoverContent className="w-80 p-3 z-50" align="start">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -1352,15 +1361,16 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                     setAddFilterOpen(open)
                   }}
                 >
-                  <PopoverTrigger asChild>
+                  <PopoverAnchor asChild>
                     <Button
                       variant="outline"
+                      onClick={() => setAddFilterOpen(!addFilterOpen)}
                       className="h-8 gap-1.5 px-3 text-sm text-muted-foreground hover:text-foreground bg-transparent relative z-10 pointer-events-auto"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Filter
                     </Button>
-                  </PopoverTrigger>
+                  </PopoverAnchor>
                   <PopoverContent className="w-56 p-2 z-50" align="start">
                     <div className="space-y-1">
                       <div className="px-2 py-1.5">
@@ -1461,15 +1471,16 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                     setAddFilterOpen(open)
                   }}
                 >
-                  <PopoverTrigger asChild>
+                  <PopoverAnchor asChild>
                     <Button
                       variant="outline"
+                      onClick={() => setAddFilterOpen(!addFilterOpen)}
                       className="h-8 gap-1.5 px-3 text-sm text-muted-foreground hover:text-foreground bg-transparent relative z-10 pointer-events-auto"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Filter
                     </Button>
-                  </PopoverTrigger>
+                  </PopoverAnchor>
                   <PopoverContent className="w-56 p-2 z-50" align="start">
                     <div className="space-y-1">
                       <div className="px-2 py-1.5">
@@ -1548,9 +1559,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 (openFilters.category || isCategoryActivePendingReview) && (
                   <Popover open={openFilters.category} onOpenChange={(open) => toggleFilter("category", open)}>
-                    <PopoverTrigger asChild>
+                    <PopoverAnchor asChild>
                       <Button
                         variant="outline"
+                        onClick={() => toggleFilter("category", !openFilters.category)}
                         className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                           isCategoryActivePendingReview
                             ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1561,7 +1573,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>{getCategoryLabel()}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverTrigger>
+                    </PopoverAnchor>
                     <PopoverContent className="w-64 p-3 z-50" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -1623,9 +1635,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 (openFilters.priority || isPriorityActive) && (
                   <Popover open={openFilters.priority} onOpenChange={(open) => toggleFilter("priority", open)}>
-                    <PopoverTrigger asChild>
+                    <PopoverAnchor asChild>
                       <Button
                         variant="outline"
+                        onClick={() => toggleFilter("priority", !openFilters.priority)}
                         className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                           isPriorityActive
                             ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1636,7 +1649,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>{getPriorityLabel()}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverTrigger>
+                    </PopoverAnchor>
                     <PopoverContent className="w-64 p-3 z-50" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -1692,9 +1705,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 (openFilters.provider || isProviderActive) && (
                   <Popover open={openFilters.provider} onOpenChange={(open) => toggleFilter("provider", open)}>
-                    <PopoverTrigger asChild>
+                    <PopoverAnchor asChild>
                       <Button
                         variant="outline"
+                        onClick={() => toggleFilter("provider", !openFilters.provider)}
                         className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                           isProviderActive
                             ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1705,7 +1719,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>{getProviderLabel()}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverTrigger>
+                    </PopoverAnchor>
                     <PopoverContent className="w-64 p-3 z-50" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -1754,9 +1768,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 (openFilters.date || isDateActive) && (
                   <Popover open={openFilters.date} onOpenChange={(open) => toggleFilter("date", open)}>
-                    <PopoverTrigger asChild>
+                    <PopoverAnchor asChild>
                       <Button
                         variant="outline"
+                        onClick={() => toggleFilter("date", !openFilters.date)}
                         className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                           isDateActive
                             ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1768,7 +1783,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>{getDateLabel()}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverTrigger>
+                    </PopoverAnchor>
                     <PopoverContent
                       className="w-auto p-0 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[side=bottom]:slide-in-from-top-2 data-[state=open]:duration-200 data-[state=closed]:duration-150"
                       align="start"
@@ -1804,9 +1819,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 (openFilters.tagType || isTagTypeActive) && (
                   <Popover open={openFilters.tagType} onOpenChange={(open) => toggleFilter("tagType", open)}>
-                    <PopoverTrigger asChild>
+                    <PopoverAnchor asChild>
                       <Button
                         variant="outline"
+                        onClick={() => toggleFilter("tagType", !openFilters.tagType)}
                         className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                           isTagTypeActive
                             ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1817,7 +1833,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>{getTagTypeLabel()}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverTrigger>
+                    </PopoverAnchor>
                     <PopoverContent className="w-64 p-3 z-50" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -1905,9 +1921,10 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 (openFilters.tagValue || isTagValueActive) && (
                   <Popover open={openFilters.tagValue} onOpenChange={(open) => toggleFilter("tagValue", open)}>
-                    <PopoverTrigger asChild>
+                    <PopoverAnchor asChild>
                       <Button
                         variant="outline"
+                        onClick={() => toggleFilter("tagValue", !openFilters.tagValue)}
                         className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
                           isTagValueActive
                             ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -1918,7 +1935,7 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                         <span>{getTagValueLabel()}</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverTrigger>
+                    </PopoverAnchor>
                     <PopoverContent className="w-80 p-3 z-50" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -1959,16 +1976,17 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                 activeViewId === "snoozed-archived") &&
                 openFilters.effort && (
                   <Popover open={openFilters.effort} onOpenChange={(open) => toggleFilter("effort", open)}>
-                    <PopoverTrigger asChild>
+                    <PopoverAnchor asChild>
                       <Button
                         variant="outline"
+                        onClick={() => toggleFilter("effort", !openFilters.effort)}
                         className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-transparent hover:bg-accent"
                       >
                         <span className="font-medium">Effort:</span>
                         <span>All</span>
                         <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                       </Button>
-                    </PopoverTrigger>
+                    </PopoverAnchor>
                     <PopoverContent className="w-64 p-3 z-50" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
