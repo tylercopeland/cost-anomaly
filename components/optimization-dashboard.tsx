@@ -1405,20 +1405,18 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                     setAddFilterOpen(open)
                   }}
                 >
-                  <PopoverAnchor asChild>
+                  <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       onClick={(e) => {
                         console.log("[v0] Add Filter button clicked", { addFilterOpen })
-                        e.stopPropagation()
-                        setAddFilterOpen(!addFilterOpen)
                       }}
                       className="h-8 gap-1.5 px-3 text-sm text-muted-foreground hover:text-foreground bg-transparent relative z-10 pointer-events-auto"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Filter
                     </Button>
-                  </PopoverAnchor>
+                  </PopoverTrigger>
                   <PopoverContent className="w-56 p-2 z-50" align="start">
                     <div className="space-y-1">
                       <div className="px-2 py-1.5">
@@ -1522,20 +1520,18 @@ export function OptimizationDashboard({ initialCategoryFilter, dataSource = "clo
                     setAddFilterOpen(open)
                   }}
                 >
-                  <PopoverAnchor asChild>
+                  <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       onClick={(e) => {
                         console.log("[v0] Add Filter button clicked", { addFilterOpen })
-                        e.stopPropagation()
-                        setAddFilterOpen(!addFilterOpen)
                       }}
                       className="h-8 gap-1.5 px-3 text-sm text-muted-foreground hover:text-foreground bg-transparent relative z-10 pointer-events-auto"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Filter
                     </Button>
-                  </PopoverAnchor>
+                  </PopoverTrigger>
                   <PopoverContent className="w-56 p-2 z-50" align="start">
                     <div className="space-y-1">
                       <div className="px-2 py-1.5">
