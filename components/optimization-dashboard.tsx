@@ -202,7 +202,10 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
       if (!selectedStatuses.has(rec.status)) include = false
 
       // Subcategory filter
-      if (selectedSubCategory.length > 0 && rec.subCategory && !selectedSubCategory.includes(rec.subCategory)) include = false
+      if (selectedSubCategory.length > 0) {
+        const recSubCategory = rec.subCategory || "Other"
+        if (!selectedSubCategory.includes(recSubCategory)) include = false
+      }
 
       // Search filter
       if (searchQuery && rec.title && !rec.title.toLowerCase().includes(searchQuery.toLowerCase())) include = false
@@ -248,8 +251,11 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
       }
 
       // Sub-category filter (applied here if selectedSubCategory is not empty)
-      if (selectedSubCategory.length > 0 && rec.subCategory && !selectedSubCategory.includes(rec.subCategory)) {
-        return false
+      if (selectedSubCategory.length > 0) {
+        const recSubCategory = rec.subCategory || "Other"
+        if (!selectedSubCategory.includes(recSubCategory)) {
+          return false
+        }
       }
 
       return true
@@ -290,8 +296,11 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
       }
 
       // Sub-category filter (applied here if selectedSubCategory is not empty)
-      if (selectedSubCategory.length > 0 && rec.subCategory && !selectedSubCategory.includes(rec.subCategory)) {
-        return
+      if (selectedSubCategory.length > 0) {
+        const recSubCategory = rec.subCategory || "Other"
+        if (!selectedSubCategory.includes(recSubCategory)) {
+          return
+        }
       }
 
       // Count by category
@@ -310,6 +319,23 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
       setSelectedCategories(initialCategoryFilter)
     }
   }, [initialCategoryFilter])
+
+  // Read subCategory from URL params reactively
+  useEffect(() => {
+    const urlSubCategory = searchParams.get("subCategory")
+    if (urlSubCategory) {
+      const decodedSubCategory = decodeURIComponent(urlSubCategory)
+      console.log("[v0] Dashboard - Setting subCategory from URL:", decodedSubCategory)
+      setSelectedSubCategory([decodedSubCategory])
+      // Scroll to top when subCategory is set from URL
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    } else {
+      // Clear subCategory filter when not in URL
+      console.log("[v0] Dashboard - Clearing subCategory filter")
+      setSelectedSubCategory([])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.toString()])
 
   useEffect(() => {
     if (initialCategoryFilter) {
@@ -332,14 +358,18 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
     setSelectedTagValues(new Set(activeView.config.selectedTagValues))
     setGroupBy(activeView.config.groupBy)
     setDateRange(activeView.config.dateRange)
-    if (activeView.config.selectedSubCategory) {
-      setSelectedSubCategory(
-        Array.isArray(activeView.config.selectedSubCategory) ? activeView.config.selectedSubCategory : [],
-      )
-    } else {
-      setSelectedSubCategory([])
+    // Only set subCategory from view if there's no URL param
+    const urlSubCategory = searchParams.get("subCategory")
+    if (!urlSubCategory) {
+      if (activeView.config.selectedSubCategory) {
+        setSelectedSubCategory(
+          Array.isArray(activeView.config.selectedSubCategory) ? activeView.config.selectedSubCategory : [],
+        )
+      } else {
+        setSelectedSubCategory([])
+      }
     }
-  }, [activeViewId, initialCategoryFilter])
+  }, [activeViewId, initialCategoryFilter, searchParams])
 
   useEffect(() => {
     if (openFilters.date) {

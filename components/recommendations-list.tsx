@@ -559,7 +559,7 @@ export function RecommendationsList({
         timestamp,
       })
       const expirationDate = new Date()
-      expirationDate.setMonth(expirationDate.getMonth() + 6)
+      expirationDate.setMonth(expirationDate.getMonth() + 9)
       newTimers.set(itemId, expirationDate)
     })
 
@@ -784,7 +784,11 @@ export function RecommendationsList({
       if (categoriesSet.size > 0 && !categoriesSet.has(item.category)) return false
 
       if (selectedSubCategory && selectedSubCategory.length > 0) {
-        if (!item.subCategory || !selectedSubCategory.includes(item.subCategory)) return false
+        const itemSubCategory = item.subCategory || "Other"
+        const isMatch = selectedSubCategory.includes(itemSubCategory)
+        if (!isMatch) {
+          return false
+        }
       }
 
       if (tagTypesSet.size > 0 && !tagTypesSet.has(item.tagType)) return false
@@ -1073,6 +1077,7 @@ export function RecommendationsList({
 
   // Filtered recommendations based on various criteria
   const filteredRecommendations = useMemo(() => {
+    console.log("[v0] RecommendationsList - selectedSubCategory:", selectedSubCategory)
     const allItems = processRecommendations.flatMap((section) =>
       section.items.map((item) => ({
         ...item,
@@ -1109,7 +1114,11 @@ export function RecommendationsList({
       if (categoriesSet.size > 0 && !categoriesSet.has(item.category)) return false
 
       if (selectedSubCategory && selectedSubCategory.length > 0) {
-        if (!item.subCategory || !selectedSubCategory.includes(item.subCategory)) return false
+        const itemSubCategory = item.subCategory || "Other"
+        const isMatch = selectedSubCategory.includes(itemSubCategory)
+        if (!isMatch) {
+          return false
+        }
       }
 
       if (tagTypesSet.size > 0 && !tagTypesSet.has(item.tagType)) return false
