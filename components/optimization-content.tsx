@@ -451,8 +451,15 @@ const OptimizationContent = ({ selectedStatuses }: OptimizationContentProps) => 
       ? `/?category=${encodedCategory}&subCategory=${encodedSubCategory}&groupBy=priority`
       : `/saas/optimization?category=${encodedCategory}&subCategory=${encodedSubCategory}&groupBy=priority`
     console.log("[v0] OptimizationContent - Navigating to:", url)
-    // Scroll to top before navigation
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    // Scroll to top immediately before navigation
+    window.scrollTo(0, 0)
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+    // Also try to scroll the main element if it exists
+    const mainElement = document.querySelector('main')
+    if (mainElement) {
+      mainElement.scrollTop = 0
+    }
     router.push(url)
   }
 

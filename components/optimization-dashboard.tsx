@@ -327,8 +327,22 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
       const decodedSubCategory = decodeURIComponent(urlSubCategory)
       console.log("[v0] Dashboard - Setting subCategory from URL:", decodedSubCategory)
       setSelectedSubCategory([decodedSubCategory])
-      // Scroll to top when subCategory is set from URL
-      window.scrollTo({ top: 0, behavior: "smooth" })
+      // Scroll to top when subCategory is set from URL (after page renders)
+      // Use multiple methods to ensure scroll works
+      const scrollToTop = () => {
+        window.scrollTo(0, 0)
+        document.documentElement.scrollTop = 0
+        document.body.scrollTop = 0
+        const mainElement = document.querySelector('main')
+        if (mainElement) {
+          mainElement.scrollTop = 0
+        }
+      }
+      // Try immediately and after a short delay
+      scrollToTop()
+      setTimeout(scrollToTop, 0)
+      setTimeout(scrollToTop, 100)
+      setTimeout(scrollToTop, 300)
     } else {
       // Clear subCategory filter when not in URL
       console.log("[v0] Dashboard - Clearing subCategory filter")
