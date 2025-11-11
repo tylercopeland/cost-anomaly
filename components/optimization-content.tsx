@@ -22,8 +22,6 @@ import {
   Settings,
   Lock,
   Pencil,
-  Eye,
-  ChevronUp,
 } from "lucide-react"
 import { useManagement } from "@/lib/management-context"
 import { useRouter } from "next/navigation"
@@ -443,6 +441,19 @@ const OptimizationContent = ({ selectedStatuses }: OptimizationContentProps) => 
     } else {
       router.push(`/saas/optimization?category=${encodeURIComponent(categoryTitle)}&groupBy=priority`)
     }
+  }
+
+  const handleSubCategoryClick = (categoryTitle: string, subCategory: string) => {
+    const encodedCategory = encodeURIComponent(categoryTitle)
+    const encodedSubCategory = encodeURIComponent(subCategory)
+    console.log("[v0] OptimizationContent - Navigating with category:", categoryTitle, "subCategory:", subCategory)
+    const url = isCloudManagement
+      ? `/?category=${encodedCategory}&subCategory=${encodedSubCategory}&groupBy=priority`
+      : `/saas/optimization?category=${encodedCategory}&subCategory=${encodedSubCategory}&groupBy=priority`
+    console.log("[v0] OptimizationContent - Navigating to:", url)
+    // Scroll to top before navigation
+    window.scrollTo({ top: 0, behavior: "smooth" })
+    router.push(url)
   }
 
   const getSubCategorySavings = (categoryTitle: string) => {
@@ -1081,8 +1092,31 @@ const OptimizationContent = ({ selectedStatuses }: OptimizationContentProps) => 
                   </div>
                 </div>
 
-                {isExpanded && hasSubCategories && (
-                  <div className="bg-gray-50 border-t border-gray-200 overflow-hidden">
+                {hasSubCategories && (
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleCategoryExpansion(category.title, e)
+                    }}
+                    className={`border-t border-gray-200 bg-white px-6 py-4 cursor-pointer flex items-center gap-1.5 ${
+                      !isExpanded ? "rounded-b-lg" : ""
+                    }`}
+                  >
+                    <ChevronRight
+                      className={`h-4 w-4 text-gray-600 transition-transform duration-200 ease-in-out ${
+                        isExpanded ? "rotate-90" : "rotate-0"
+                      }`}
+                    />
+                    <span className="text-sm text-gray-600">View sub-categories</span>
+                  </div>
+                )}
+
+                {hasSubCategories && (
+                  <div
+                    className={`bg-gray-50 border-t border-gray-200 overflow-hidden transition-all duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                      isExpanded ? "max-h-[1000px] opacity-100 rounded-b-lg" : "max-h-0 opacity-0"
+                    }`}
+                  >
                     <div className="px-6 py-4">
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Sub-categories</p>
                       <div className="space-y-2">
@@ -1096,15 +1130,27 @@ const OptimizationContent = ({ selectedStatuses }: OptimizationContentProps) => 
                             )
                             const hasHighPriority = subCategoryItems.some((item) => item.priority === "High")
                             const hasRevisit = subCategoryItems.some((item) => item.status === "Re-visit")
+                            const itemCount = subCategoryItems.length
 
                             return (
                               <div
                                 key={subCategory}
-                                className="flex items-center justify-between py-3 px-4 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleSubCategoryClick(category.title, subCategory)
+                                }}
+                                className="flex items-center justify-between py-4 px-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 cursor-pointer transition-all duration-200 group"
                               >
-                                <div className="flex items-center gap-3 flex-1">
-                                  <span className="text-sm font-medium text-gray-900">{subCategory}</span>
-                                  <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <span className="text-sm font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+                                      {subCategory}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      ({itemCount} {itemCount === 1 ? "item" : "items"})
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 flex-shrink-0">
                                     {hasHighPriority && (
                                       <Badge
                                         variant="outline"
@@ -1123,9 +1169,12 @@ const OptimizationContent = ({ selectedStatuses }: OptimizationContentProps) => 
                                     )}
                                   </div>
                                 </div>
-                                <span className="text-sm font-semibold text-green-600">
-                                  £{savings.toLocaleString()}
-                                </span>
+                                <div className="flex items-center gap-3 flex-shrink-0">
+                                  <span className="text-sm font-semibold text-green-600 group-hover:text-green-700 transition-colors">
+                                    £{savings.toLocaleString()}
+                                  </span>
+                                  <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100" />
+                                </div>
                               </div>
                             )
                           })}
@@ -1134,45 +1183,6 @@ const OptimizationContent = ({ selectedStatuses }: OptimizationContentProps) => 
                   </div>
                 )}
 
-                <div className="border-t border-gray-200 bg-white px-4 py-2 flex items-center justify-between">
-                  <div className="flex items-center">
-                    {hasSubCategories && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          toggleCategoryExpansion(category.title, e)
-                        }}
-                        className="gap-1.5 text-xs text-gray-600 hover:text-gray-900 h-7 px-2"
-                      >
-                        {isExpanded ? (
-                          <>
-                            <ChevronUp className="h-3 w-3" />
-                            View sub-categories
-                          </>
-                        ) : (
-                          <>
-                            <ChevronDown className="h-3 w-3" />
-                            View sub-categories
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleCategoryClick(category.title)
-                    }}
-                    className="gap-1.5 text-xs text-gray-600 hover:text-gray-900 h-7 px-2"
-                  >
-                    <Eye className="h-3 w-3" />
-                    View recommendations
-                  </Button>
-                </div>
               </div>
             )
           })}
