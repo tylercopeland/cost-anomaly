@@ -3446,7 +3446,16 @@ export function RecommendationsList({
                     <X className="h-4 w-4" />
                     Unmark {selectedItems.size === 1 ? "item" : "items"}
                   </Button>
-                  {dataSource !== "saas" && (
+                  {dataSource === "saas" && selectedItems.size === 1 ? (
+                    <Button
+                      onClick={handleSendToIntegration}
+                      size="sm"
+                      className="gap-2 bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-blue-600"
+                    >
+                      <Send className="h-4 w-4" />
+                      Action recommendation
+                    </Button>
+                  ) : dataSource !== "saas" ? (
                     <Button
                       onClick={handleSendToIntegration}
                       size="sm"
@@ -3455,7 +3464,7 @@ export function RecommendationsList({
                       <Send className="h-4 w-4" />
                       Send to integration
                     </Button>
-                  )}
+                  ) : null}
                 </>
               ) : (
                 <>
@@ -3475,7 +3484,17 @@ export function RecommendationsList({
                     <Clock className="h-4 w-4" />
                     Snooze
                   </Button>
-                  {dataSource !== "saas" && (
+                  {dataSource === "saas" && selectedItems.size === 1 ? (
+                    <Button
+                      onClick={handleSendToIntegration}
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-blue-600"
+                    >
+                      <Send className="h-4 w-4" />
+                      Action recommendation
+                    </Button>
+                  ) : dataSource !== "saas" ? (
                     <Button
                       onClick={handleSendToIntegration}
                       variant="outline"
@@ -3485,7 +3504,7 @@ export function RecommendationsList({
                       <Send className="h-4 w-4" />
                       Send to integration
                     </Button>
-                  )}
+                  ) : null}
                 </>
               )}
             </div>
@@ -3502,6 +3521,12 @@ export function RecommendationsList({
         onSendToIntegration={handleSidePanelSendToIntegration}
         dataSource={dataSource} // Pass dataSource prop to side panel so it shows correct button label
         account={selectedAccount} // Pass selected account to show account details
+        onItemClick={(rec) => {
+          // When a recommendation is clicked from account details, open it
+          setSelectedItem(rec)
+          setSelectedAccount(null) // Clear account selection to show recommendation
+          setCurrentlyViewedItemId(rec.id)
+        }}
       />
 
       <ArchiveModal

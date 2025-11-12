@@ -47,6 +47,48 @@ export function Header() {
     }
 
     if (pathname === "/optimization") {
+      const provider = searchParams.get("provider")
+      if (provider === "azure") {
+        if (category) {
+          return (
+            <>
+              <a
+                href="/optimization"
+                onClick={(e) => handleOverviewClick(e, "/optimization")}
+                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                Multi-Cloud
+              </a>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <a
+                href="/optimization?provider=azure"
+                onClick={(e) => {
+                  e.preventDefault()
+                  router.push("/optimization?provider=azure")
+                }}
+                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                Azure
+              </a>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <span className="text-foreground font-medium">Recommendations</span>
+            </>
+          )
+        }
+        return (
+          <>
+            <a
+              href="/optimization"
+              onClick={(e) => handleOverviewClick(e, "/optimization")}
+              className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              Multi-Cloud
+            </a>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            <span className="text-foreground font-medium">Azure</span>
+          </>
+        )
+      }
       if (category) {
         return (
           <>
@@ -80,6 +122,57 @@ export function Header() {
         )
       }
       return <span className="text-foreground font-medium">Overview</span>
+    } else if (pathname.startsWith("/saas/") && pathname !== "/saas/optimization" && pathname !== "/saas/license-optimization" && !pathname.startsWith("/saas/license-optimization/")) {
+      // Provider pages (e.g., /saas/m365, /saas/salesforce)
+      const providerPath = pathname.split("/").pop() || ""
+      const providerMap: Record<string, string> = {
+        m365: "M365",
+        salesforce: "Salesforce",
+        adobe: "Adobe",
+        slack: "Slack",
+        zoom: "Zoom",
+      }
+      const providerName = providerMap[providerPath] || providerPath
+
+      if (category) {
+        return (
+          <>
+            <a
+              href="/saas/optimization"
+              onClick={(e) => handleOverviewClick(e, "/saas/optimization")}
+              className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              Multi-SaaS
+            </a>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            <a
+              href={pathname}
+              onClick={(e) => {
+                e.preventDefault()
+                router.push(pathname)
+              }}
+              className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              {providerName}
+            </a>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            <span className="text-foreground font-medium">Recommendations</span>
+          </>
+        )
+      }
+      return (
+        <>
+          <a
+            href="/saas/optimization"
+            onClick={(e) => handleOverviewClick(e, "/saas/optimization")}
+            className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            Multi-SaaS
+          </a>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          <span className="text-foreground font-medium">{providerName}</span>
+        </>
+      )
     } else if (pathname === "/saas/license-optimization") {
       return (
         <>
@@ -142,7 +235,7 @@ export function Header() {
 
   return (
     <header className="border-b border-gray-200 bg-white">
-      <div className="flex items-center justify-between px-6 py-4">
+      <div className="flex items-center justify-between px-4 py-4">
         <div className="flex items-center gap-2 text-sm">{renderBreadcrumbs()}</div>
       </div>
     </header>

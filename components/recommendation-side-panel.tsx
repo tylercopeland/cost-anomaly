@@ -63,6 +63,8 @@ interface RecommendationSidePanelProps {
   onSendToIntegration?: (id: number) => void
   onConfirmDelete?: (id: number) => void
   dataSource?: "cloud" | "saas" // Added dataSource prop
+  account?: string | null // Optional account prop to show account details directly
+  onItemClick?: (item: RecommendationItem) => void // Callback to open a recommendation
 }
 
 export function RecommendationSidePanel({
@@ -75,6 +77,7 @@ export function RecommendationSidePanel({
   onConfirmDelete,
   dataSource = "cloud", // Default to cloud for backward compatibility
   account: accountProp = null, // Optional account prop to show account details directly
+  onItemClick, // Callback to open a recommendation
 }: RecommendationSidePanelProps) {
   const [selectedOwner, setSelectedOwner] = useState(item ? item.owner : "Jessica Lee")
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -107,8 +110,18 @@ export function RecommendationSidePanel({
     if (accountProp) {
       setSelectedAccount(accountProp)
       setAccountTab("details")
+    } else {
+      // Clear account selection when accountProp is null/undefined
+      setSelectedAccount(null)
     }
   }, [accountProp])
+
+  // Clear account selection when item changes (unless accountProp is explicitly set)
+  useEffect(() => {
+    if (item && !accountProp) {
+      setSelectedAccount(null)
+    }
+  }, [item, accountProp])
 
   useEffect(() => {
     if (item) {
@@ -775,53 +788,58 @@ export function RecommendationSidePanel({
             : "animate-in slide-in-from-right-full duration-400"
         }`}
       >
-        {selectedAccount ? (
-          // Account Detail View
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-8 relative">
+        {/* Toolbar */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            {selectedAccount && item && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleClose}
-                className="absolute top-4 right-4 h-8 w-8 p-0 z-10"
+                onClick={handleBackToRecommendation}
+                className="h-8 px-2 gap-2 text-gray-600 hover:text-gray-900"
               >
-                <X className="h-4 w-4" />
+                <ArrowLeft className="h-4 w-4" />
+                Back to recommendation
               </Button>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
 
-              {/* Back button - only show if there's a recommendation item to go back to */}
-              {item && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleBackToRecommendation}
-                  className="mb-4 -ml-2 gap-2 text-gray-600 hover:text-gray-900"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to recommendation
-                </Button>
-              )}
+        {selectedAccount ? (
+          // Account Detail View
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-8">
 
               {/* Account header */}
               <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-1">{selectedAccount}</h2>
-                <div className="text-sm text-gray-600">
-                  <span>Account Details</span>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                  ACCOUNT DETAILS
                 </div>
+                <h2 className="text-xl font-semibold text-gray-900">{selectedAccount}</h2>
               </div>
 
               {/* Horizontal tabs navigation */}
               <div className="border-b border-gray-200 mb-6 -mx-8">
-                <div className="flex gap-1 overflow-x-auto items-center pl-8">
+                <div className="flex gap-0 overflow-x-auto items-center pl-8">
                   {[
                     { id: "details", label: "Details" },
-                    { id: "groups", label: "Groups" },
+                    { id: "plans", label: "Plans" },
                     { id: "licenses", label: "Licenses" },
-                    { id: "devices", label: "Devices" },
+                    { id: "recommendations", label: "Recommendations" },
+                    { id: "activities", label: "Activities" },
                   ].map((tab, index) => (
                     <button
                       key={tab.id}
                       onClick={() => setAccountTab(tab.id)}
-                      className={`${index === 0 ? "pl-0 pr-4" : "px-4"} py-3 text-sm font-medium transition-colors relative whitespace-nowrap ${
+                      className={`${index === 0 ? "pl-0 pr-3" : "px-3"} py-3 text-sm font-medium transition-colors relative whitespace-nowrap ${
                         accountTab === tab.id ? "text-blue-600" : "text-gray-600 hover:text-gray-900"
                       }`}
                     >
@@ -829,38 +847,12 @@ export function RecommendationSidePanel({
                       {accountTab === tab.id && (
                         <div
                           className={`absolute bottom-0 h-0.5 bg-blue-600 ${
-                            index === 0 ? "left-0 right-4" : "left-4 right-4"
+                            index === 0 ? "left-0 right-3" : "left-3 right-3"
                           }`}
                         />
                       )}
                     </button>
                   ))}
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        className={`px-4 py-3 text-sm font-medium transition-colors relative whitespace-nowrap flex items-center gap-1.5 ${
-                          accountTab === "activities" || accountTab === "recommendations"
-                            ? "text-blue-600"
-                            : "text-gray-600 hover:text-gray-900"
-                        }`}
-                      >
-                        <span>More</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                        {(accountTab === "activities" || accountTab === "recommendations") && (
-                          <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-blue-600" />
-                        )}
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setAccountTab("activities")} className="cursor-pointer">
-                        Activities
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setAccountTab("recommendations")} className="cursor-pointer">
-                        Recommendations
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
               </div>
 
@@ -981,40 +973,30 @@ export function RecommendationSidePanel({
                   </div>
                 )}
 
-                {accountTab === "groups" && (
+                {accountTab === "plans" && (
                   <div className="space-y-4">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">Group Memberships</h3>
-                    <div className="space-y-2">
-                      {[
-                        "Engineering Team",
-                        "All Employees",
-                        "Microsoft 365 Users",
-                        "Project Contributors",
-                        "Development Team",
-                      ].map((group, index) => (
-                        <div key={index} className="rounded-lg border border-gray-200 bg-white p-3">
-                          <div className="text-sm text-gray-900">{group}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {accountTab === "devices" && (
-                  <div className="space-y-4">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">Registered Devices</h3>
+                    <h3 className="text-base font-semibold text-gray-900 mb-4">Assigned Plans</h3>
                     <div className="space-y-3">
                       {[
-                        { name: "DESKTOP-ABC123", type: "Windows 11 Pro", lastSeen: "2 hours ago" },
-                        { name: "iPhone 14 Pro", type: "iOS 17.1", lastSeen: "1 day ago" },
-                        { name: "MacBook Pro", type: "macOS Sonoma", lastSeen: "3 days ago" },
-                      ].map((device, index) => (
+                        { name: "Microsoft 365 E5", status: "Active", assigned: "Oct 15, 2025" },
+                        { name: "Enterprise Mobility + Security E5", status: "Active", assigned: "Oct 15, 2025" },
+                        { name: "Office 365 E5", status: "Active", assigned: "Oct 15, 2025" },
+                      ].map((plan, index) => (
                         <div key={index} className="rounded-lg border border-gray-200 bg-white p-3">
-                          <div className="text-sm font-medium text-gray-900 mb-1">{device.name}</div>
-                          <div className="text-xs text-gray-500 space-y-1">
-                            <div>{device.type}</div>
-                            <div>Last seen: {device.lastSeen}</div>
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="text-sm font-medium text-gray-900">{plan.name}</div>
+                            <Badge
+                              variant="secondary"
+                              className={`text-xs font-medium ${
+                                plan.status === "Active"
+                                  ? "bg-green-50 text-green-700 border-green-200"
+                                  : "bg-gray-50 text-gray-700 border-gray-200"
+                              }`}
+                            >
+                              {plan.status}
+                            </Badge>
                           </div>
+                          <div className="text-xs text-gray-500">Assigned: {plan.assigned}</div>
                         </div>
                       ))}
                     </div>
@@ -1027,32 +1009,56 @@ export function RecommendationSidePanel({
                     <div className="space-y-3">
                       {[
                         {
+                          id: 1001,
                           title: "Remove unused Project Online license",
                           savings: "$120/year",
-                          priority: "High",
+                          priority: "high",
+                          status: "New",
+                          owner: "Jessica Lee",
+                          description: "",
+                          period: "year",
+                          category: "Financial",
+                          subCategory: "License Optimization",
+                          account: selectedAccount,
                         },
                         {
+                          id: 1002,
                           title: "Downgrade to Microsoft 365 E3",
                           savings: "$180/year",
-                          priority: "Medium",
+                          priority: "medium",
+                          status: "New",
+                          owner: "Jessica Lee",
+                          description: "",
+                          period: "year",
+                          category: "Financial",
+                          subCategory: "License Optimization",
+                          account: selectedAccount,
                         },
-                      ].map((rec, index) => (
-                        <div key={index} className="rounded-lg border border-gray-200 bg-white p-3">
+                      ].map((rec) => (
+                        <button
+                          key={rec.id}
+                          onClick={() => {
+                            if (onItemClick) {
+                              onItemClick(rec as RecommendationItem)
+                            }
+                          }}
+                          className="w-full rounded-lg border border-gray-200 bg-white p-3 text-left hover:bg-gray-50 hover:border-gray-300 transition-colors cursor-pointer"
+                        >
                           <div className="flex items-start justify-between mb-2">
                             <div className="text-sm font-medium text-gray-900">{rec.title}</div>
                             <Badge
                               variant="secondary"
                               className={`text-xs font-medium ${
-                                rec.priority === "High"
+                                rec.priority === "high"
                                   ? "bg-red-50 text-red-700 border-red-200"
                                   : "bg-orange-50 text-orange-700 border-orange-200"
                               }`}
                             >
-                              {rec.priority}
+                              {rec.priority.charAt(0).toUpperCase() + rec.priority.slice(1)}
                             </Badge>
                           </div>
                           <div className="text-xs text-green-600 font-medium">{rec.savings}</div>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -1065,26 +1071,18 @@ export function RecommendationSidePanel({
           <>
             {/* Scrollable content area */}
             <div className="flex-1 overflow-y-auto pb-24">
-              <div className="p-8 relative">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClose}
-                  className="absolute top-4 right-4 h-8 w-8 p-0 z-10"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+              <div className="p-8">
 
                 {/* Recommendation Title and Subscription */}
                 <div className="mb-6">
                   {dataSource === "saas" && item && (
-                    <div className="mb-3">
+                    <div className="mb-1">
                       <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                        Recommendation details
+                        Recommendation name
                       </div>
                     </div>
                   )}
-                  <h2 className="text-xl font-semibold text-gray-900 mb-1">{detailsData.name}</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">{detailsData.name}</h2>
                   {dataSource !== "saas" && (
                     <div className="text-sm text-gray-600">
                       <span>{detailsData.subscription}</span>
