@@ -36,6 +36,7 @@ interface RecommendationItem {
   owner: string
   subCategory?: string
   category?: string
+  account?: string // Added account field for SaaS recommendations
   archiveNote?: {
     note: string
     owner: string
@@ -73,6 +74,7 @@ export function RecommendationSidePanel({
   onSendToIntegration,
   onConfirmDelete,
   dataSource = "cloud", // Default to cloud for backward compatibility
+  account: accountProp = null, // Optional account prop to show account details directly
 }: RecommendationSidePanelProps) {
   const [selectedOwner, setSelectedOwner] = useState(item ? item.owner : "Jessica Lee")
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -80,7 +82,7 @@ export function RecommendationSidePanel({
   const [isClosing, setIsClosing] = useState(false)
   const { toast } = useToast()
   const [showAllAccounts, setShowAllAccounts] = useState(false)
-  const [selectedAccount, setSelectedAccount] = useState<string | null>(null)
+  const [selectedAccount, setSelectedAccount] = useState<string | null>(accountProp || null)
   const [accountTab, setAccountTab] = useState("details")
   const [accountSearchQuery, setAccountSearchQuery] = useState("")
 
@@ -99,6 +101,14 @@ export function RecommendationSidePanel({
       setIsClosing(false)
     }
   }, [isOpen])
+
+  // Update selectedAccount when accountProp changes
+  useEffect(() => {
+    if (accountProp) {
+      setSelectedAccount(accountProp)
+      setAccountTab("details")
+    }
+  }, [accountProp])
 
   useEffect(() => {
     if (item) {
@@ -744,9 +754,14 @@ export function RecommendationSidePanel({
 
   const handleBackToRecommendation = () => {
     setSelectedAccount(null)
+    // If there's no item, closing account view should close the panel
+    if (!item) {
+      handleClose()
+    }
   }
 
-  if (!isOpen || !item) return null
+  // Allow panel to open with just an account (no item required)
+  if (!isOpen || (!item && !selectedAccount)) return null
 
   return (
     <>
@@ -773,16 +788,18 @@ export function RecommendationSidePanel({
                 <X className="h-4 w-4" />
               </Button>
 
-              {/* Back button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleBackToRecommendation}
-                className="mb-4 -ml-2 gap-2 text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to recommendation
-              </Button>
+              {/* Back button - only show if there's a recommendation item to go back to */}
+              {item && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBackToRecommendation}
+                  className="mb-4 -ml-2 gap-2 text-gray-600 hover:text-gray-900"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to recommendation
+                </Button>
+              )}
 
               {/* Account header */}
               <div className="mb-6">
@@ -1060,10 +1077,19 @@ export function RecommendationSidePanel({
 
                 {/* Recommendation Title and Subscription */}
                 <div className="mb-6">
+                  {dataSource === "saas" && item && (
+                    <div className="mb-3">
+                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                        Recommendation details
+                      </div>
+                    </div>
+                  )}
                   <h2 className="text-xl font-semibold text-gray-900 mb-1">{detailsData.name}</h2>
-                  <div className="text-sm text-gray-600">
-                    <span>{detailsData.subscription}</span>
-                  </div>
+                  {dataSource !== "saas" && (
+                    <div className="text-sm text-gray-600">
+                      <span>{detailsData.subscription}</span>
+                    </div>
+                  )}
                 </div>
 
                 <Tabs defaultValue="details" className="w-full">
@@ -1141,23 +1167,34 @@ export function RecommendationSidePanel({
                           <div className="text-sm font-semibold text-green-600">{detailsData.savingsP3y}</div>
                         </div>
                         <div>
-                          {/* CHANGE: Use item.title for both Multi-SaaS and Multi-Cloud to match the recommendation title */}
+                          {/* CHANGE: For SaaS, show Account instead of Recommendation Name */}
                           <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-                            {item.subCategory &&
-                            ["Financial", "Operations", "Security", "Adoption"].includes(
-                              item.category || detailsData.category,
-                            )
+                            {dataSource === "saas" && item.account
+                              ? "Account"
+                              : item.subCategory &&
+                              ["Financial", "Operations", "Security", "Adoption"].includes(
+                                item.category || detailsData.category,
+                              )
                               ? "Recommendation Name"
                               : "Resource Name"}
                           </div>
-                          <div className="text-sm text-gray-900">
-                            {item.subCategory &&
-                            ["Financial", "Operations", "Security", "Adoption"].includes(
-                              item.category || detailsData.category,
-                            )
-                              ? item.title
-                              : detailsData.resourceName}
-                          </div>
+                          {dataSource === "saas" && item && item.account ? (
+                            <button
+                              onClick={() => item && item.account && handleAccountClick(item.account)}
+                              className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left"
+                            >
+                              {item.account}
+                            </button>
+                          ) : (
+                            <div className="text-sm text-gray-900">
+                              {item.subCategory &&
+                              ["Financial", "Operations", "Security", "Adoption"].includes(
+                                item.category || detailsData.category,
+                              )
+                                ? item.title
+                                : detailsData.resourceName}
+                            </div>
+                          )}
                         </div>
                         <div>
                           <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Category</div>
@@ -1190,7 +1227,8 @@ export function RecommendationSidePanel({
                       <Separator className="my-6" />
 
                       {/* CHANGE: Moved Impacted Accounts section above Smart Tags */}
-                      {item.subCategory &&
+                      {dataSource !== "saas" &&
+                        item.subCategory &&
                         impactedAccounts.length > 0 &&
                         ["Financial", "Operations", "Security", "Adoption"].includes(
                           item.category || detailsData.category,

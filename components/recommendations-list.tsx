@@ -72,13 +72,86 @@ const getEaseToImplement = (category: string): "Easy" | "Medium" | "Hard" => {
   return easeMap[category] || "Medium"
 }
 
-// Transform the shared data to match the expected format
-const transformedItems = allItems.map((item) => ({
-  ...item,
-  savings: item.savingsFormatted,
-  icon: item.provider === "azure" ? AzureIcon : item.provider === "aws" ? AWSIcon : GoogleCloudIcon,
-  iconUrl: null,
-}))
+// Helper function to generate impacted accounts for SaaS recommendations
+const generateImpactedAccounts = (): string[] => {
+  const firstNames = [
+    "Sarah", "Michael", "Emily", "David", "Jessica", "James", "Jennifer", "Robert", "Linda", "William",
+    "Mary", "John", "Patricia", "Richard", "Barbara", "Thomas", "Susan", "Charles", "Margaret", "Daniel",
+    "Lisa", "Matthew", "Nancy", "Anthony", "Karen", "Mark", "Betty", "Donald", "Helen", "Steven",
+    "Sandra", "Paul", "Ashley", "Andrew", "Kimberly", "Joshua", "Donna", "Kenneth", "Emily", "Kevin",
+    "Carol", "Brian", "Michelle", "George", "Amanda", "Edward", "Melissa", "Ronald", "Deborah", "Timothy",
+  ]
+  const lastNames = [
+    "Johnson", "Chen", "Rodriguez", "Kim", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis",
+    "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson",
+    "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis",
+    "Robinson", "Walker", "Young", "Allen", "King", "Wright", "Scott", "Torres", "Nguyen", "Hill",
+    "Flores", "Green", "Adams", "Nelson", "Baker", "Hall", "Rivera", "Campbell", "Mitchell", "Carter",
+  ]
+
+  const accounts: string[] = []
+  // Reduced to 1 account per recommendation to keep total recommendations around 50,000-60,000
+  // With ~50,000 base recommendations, 1 account each = ~50,000 total rows
+  const totalAccounts = 1
+
+  for (let i = 0; i < totalAccounts; i++) {
+    const firstName = firstNames[i % firstNames.length]
+    const lastName = lastNames[Math.floor(i / firstNames.length) % lastNames.length]
+    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i > 49 ? i : ""}@company.com`
+    accounts.push(email)
+  }
+
+  return accounts
+}
+
+// Helper function to generate a pool of accounts for SaaS recommendations
+// Using a smaller pool ensures some accounts will have multiple recommendations
+const generateAccountPool = (): string[] => {
+  const firstNames = [
+    "Sarah", "Michael", "Emily", "David", "Jessica", "James", "Jennifer", "Robert", "Linda", "William",
+    "Mary", "John", "Patricia", "Richard", "Barbara", "Thomas", "Susan", "Charles", "Margaret", "Daniel",
+    "Lisa", "Matthew", "Nancy", "Anthony", "Karen", "Mark", "Betty", "Donald", "Helen", "Steven",
+    "Sandra", "Paul", "Ashley", "Andrew", "Kimberly", "Joshua", "Donna", "Kenneth", "Emily", "Kevin",
+    "Carol", "Brian", "Michelle", "George", "Amanda", "Edward", "Melissa", "Ronald", "Deborah", "Timothy",
+  ]
+  const lastNames = [
+    "Johnson", "Chen", "Rodriguez", "Kim", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis",
+    "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson",
+    "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis",
+    "Robinson", "Walker", "Young", "Allen", "King", "Wright", "Scott", "Torres", "Nguyen", "Hill",
+    "Flores", "Green", "Adams", "Nelson", "Baker", "Hall", "Rivera", "Campbell", "Mitchell", "Carter",
+  ]
+
+  const accounts: string[] = []
+  // Generate a pool of 100 accounts - this ensures some accounts will have multiple recommendations
+  // With ~50,000 recommendations and 100 accounts, each account will have ~500 recommendations on average
+  const totalAccounts = 100
+
+  for (let i = 0; i < totalAccounts; i++) {
+    const firstName = firstNames[i % firstNames.length]
+    const lastName = lastNames[Math.floor(i / lastNames.length) % lastNames.length]
+    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i > 49 ? i : ""}@company.com`
+    accounts.push(email)
+  }
+
+  return accounts
+}
+
+// Helper function to get a random account from the pool for a specific recommendation
+// Uses the recommendation ID as a seed to ensure consistent assignment for the same recommendation
+const getRandomAccountForRecommendation = (recommendationId: number | string, accountPool: string[]): string => {
+  // Convert ID to number for seeding (handle string IDs like "123-0")
+  const numericId = typeof recommendationId === "string" 
+    ? parseInt(recommendationId.split("-")[0]) || 0 
+    : recommendationId
+  
+  // Simple seeded random based on recommendation ID
+  const seed = numericId * 12345
+  const randomIndex = Math.abs(Math.floor(Math.sin(seed) * 10000)) % accountPool.length
+  return accountPool[randomIndex]
+}
+
+// Note: transformedItems is now created inside the component to support account-level expansion for SaaS
 
 const calculatePriorityBySavings = (savingsString: string): "high" | "medium" | "low" => {
   const amount = Number.parseInt(savingsString.replace(/[£,]/g, ""))
@@ -202,12 +275,16 @@ export function RecommendationsList({
   const sourceItems = dataSource === "saas" ? allSaaSItems : allItems
 
   // Transform the data to match the expected format
-  const transformedItems = sourceItems.map((item) => ({
-    ...item,
-    savings: item.savingsFormatted,
-    icon: item.provider === "azure" ? AzureIcon : item.provider === "aws" ? AWSIcon : GoogleCloudIcon,
-    iconUrl: null,
-  }))
+  // Note: Expansion to account-level rows happens AFTER filtering to avoid performance issues
+  const transformedItems = useMemo(() => {
+    return sourceItems.map((item) => ({
+      ...item,
+      savings: item.savingsFormatted,
+      icon: item.provider === "azure" ? AzureIcon : item.provider === "aws" ? AWSIcon : GoogleCloudIcon,
+      iconUrl: null,
+      account: dataSource === "saas" ? null : undefined, // Add account property for SaaS (null initially)
+    }))
+  }, [sourceItems, dataSource])
 
   // FIX: Removed defaultRecommendations from useMemo dependency array to prevent lint warning
   const defaultRecommendations = useMemo(() => {
@@ -259,10 +336,11 @@ export function RecommendationsList({
     [selectedTagValues],
   )
 
-  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set())
+  const [selectedItems, setSelectedItems] = useState<Set<number | string>>(new Set())
   const [selectedItem, setSelectedItem] = useState<any>(null)
   const [currentlyViewedItemId, setCurrentlyViewedItemId] = useState<number | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const [selectedAccount, setSelectedAccount] = useState<string | null>(null) // For account details view
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
   const [visibleItemsCount, setVisibleItemsCount] = useState<Map<string, number>>(new Map())
   const [itemsPerPageMap, setItemsPerPageMap] = useState<Map<string, number>>(new Map())
@@ -300,13 +378,14 @@ export function RecommendationsList({
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
 
   const [visibleColumns, setVisibleColumns] = useState({
-    provider: true,
+    provider: dataSource !== "saas", // Hide provider column for SaaS
     category: true,
     date: true,
     effort: true,
     priority: true,
     savings: true,
     status: true,
+    account: dataSource === "saas", // Only show account column for SaaS
   })
   // </CHANGE> Removed isColumnDialogOpen state since we're using submenu instead
 
@@ -498,7 +577,7 @@ export function RecommendationsList({
   }, [activeViewId])
   // </CHANGE>
 
-  const handleCheckboxChange = (itemId: number, checked: boolean) => {
+  const handleCheckboxChange = (itemId: number | string, checked: boolean) => {
     const newSelectedItems = new Set(selectedItems)
     if (checked) {
       newSelectedItems.add(itemId)
@@ -766,7 +845,9 @@ export function RecommendationsList({
       const currentPriority = prioritiesSet.has(item.calculatedPriority) ? item.calculatedPriority : "medium"
       if (!prioritiesSet.has(currentPriority)) return false
 
-      if (selectedProvider !== "all" && item.provider !== selectedProvider) return false
+      if (selectedProvider !== "all" && item.provider !== selectedProvider) {
+        return false
+      }
 
       if (selectedType !== "all" && selectedType !== "all-types") {
         const itemType = item.title.toLowerCase()
@@ -816,7 +897,9 @@ export function RecommendationsList({
         }
       }
 
-      if (searchQuery && searchQuery.trim() !== "") {
+      // For SaaS, skip search filter here - it will be applied after accounts are assigned
+      // For cloud, apply search filter normally
+      if (searchQuery && searchQuery.trim() !== "" && dataSource !== "saas") {
         const query = searchQuery.toLowerCase()
         const matchesTitle = item.title.toLowerCase().includes(query)
         const matchesDescription = item.description.toLowerCase().includes(query)
@@ -829,7 +912,55 @@ export function RecommendationsList({
       return true
     })
 
-    const grouped = filteredItems.reduce(
+    // For SaaS, expand filtered items into account-level rows AFTER filtering
+    // This ensures we only expand the items that match all filters, not all recommendations
+    let itemsToGroup = filteredItems
+    if (dataSource === "saas") {
+      const expandedItems: any[] = []
+      const accountPool = generateAccountPool()
+
+      filteredItems.forEach((item) => {
+        if (item.subCategory) {
+          // Assign a random account from the pool to this recommendation
+          // Each recommendation gets 1 account, but accounts can be shared across recommendations
+          const account = getRandomAccountForRecommendation(item.id, accountPool)
+          expandedItems.push({
+            ...item,
+            id: `${item.id}-0`, // Unique ID for the account row
+            account: account, // Randomly assigned account
+            originalId: item.id, // Keep reference to original recommendation ID
+          })
+        } else {
+          // For items without subCategory, keep as single row with no account
+          expandedItems.push({
+            ...item,
+            account: item.account || null,
+          })
+        }
+      })
+
+      // Apply account search filter AFTER accounts are assigned
+      if (searchQuery && searchQuery.trim() !== "") {
+        const query = searchQuery.toLowerCase().trim()
+        itemsToGroup = expandedItems.filter((item) => {
+          const matchesTitle = item.title?.toLowerCase().includes(query) || false
+          const matchesDescription = item.description?.toLowerCase().includes(query) || false
+          const matchesOwner = item.owner?.toLowerCase().includes(query) || false
+          const matchesStatus = item.status?.toLowerCase().includes(query) || false
+          const matchesAccount = item.account && typeof item.account === 'string' 
+            ? item.account.toLowerCase().includes(query) 
+            : false
+          const matchesSubCategory = item.subCategory?.toLowerCase().includes(query) || false
+          const matchesCategory = item.category?.toLowerCase().includes(query) || false
+
+          return matchesTitle || matchesDescription || matchesOwner || matchesStatus || matchesAccount || matchesSubCategory || matchesCategory
+        })
+      } else {
+        itemsToGroup = expandedItems
+      }
+    }
+
+    const grouped = itemsToGroup.reduce(
       (acc, item) => {
         let groupKey: string
         let groupLabel: string
@@ -1096,7 +1227,9 @@ export function RecommendationsList({
       const currentPriority = prioritiesSet.has(item.calculatedPriority) ? item.calculatedPriority : "medium"
       if (!prioritiesSet.has(currentPriority)) return false
 
-      if (selectedProvider !== "all" && item.provider !== selectedProvider) return false
+      if (selectedProvider !== "all" && item.provider !== selectedProvider) {
+        return false
+      }
 
       if (selectedType !== "all" && selectedType !== "all-types") {
         const itemType = item.title.toLowerCase()
@@ -1146,20 +1279,67 @@ export function RecommendationsList({
         }
       }
 
-      if (searchQuery) {
+      // For SaaS, skip search filter here - it will be applied after accounts are assigned
+      // For cloud, apply search filter normally
+      if (searchQuery && dataSource !== "saas") {
         const query = searchQuery.toLowerCase()
         return (
           item.title.toLowerCase().includes(query) ||
           item.description.toLowerCase().includes(query) ||
           item.owner.toLowerCase().includes(query) ||
-          (dataSource === "saas"
-            ? item.subCategory && item.subCategory.toLowerCase().includes(query)
-            : item.category && item.category.toLowerCase().includes(query)) // Search category or subCategory
+          (item.category && item.category.toLowerCase().includes(query))
         )
       }
 
       return true
     })
+
+    // For SaaS, expand filtered items into account-level rows AFTER filtering
+    // This ensures we only expand the items that match all filters, not all recommendations
+    if (dataSource === "saas") {
+      const expandedItems: any[] = []
+      const accountPool = generateAccountPool()
+
+      filteredItems.forEach((item) => {
+        if (item.subCategory) {
+          // Assign a random account from the pool to this recommendation
+          // Each recommendation gets 1 account, but accounts can be shared across recommendations
+          const account = getRandomAccountForRecommendation(item.id, accountPool)
+          expandedItems.push({
+            ...item,
+            id: `${item.id}-0`, // Unique ID for the account row
+            account: account, // Randomly assigned account
+            originalId: item.id, // Keep reference to original recommendation ID
+          })
+        } else {
+          // For items without subCategory, keep as single row with no account
+          expandedItems.push({
+            ...item,
+            account: item.account || null,
+          })
+        }
+      })
+
+      // Apply account search filter AFTER accounts are assigned
+      if (searchQuery && searchQuery.trim() !== "") {
+        const query = searchQuery.toLowerCase().trim()
+        return expandedItems.filter((item) => {
+          const matchesTitle = item.title?.toLowerCase().includes(query) || false
+          const matchesDescription = item.description?.toLowerCase().includes(query) || false
+          const matchesOwner = item.owner?.toLowerCase().includes(query) || false
+          const matchesStatus = item.status?.toLowerCase().includes(query) || false
+          const matchesAccount = item.account && typeof item.account === 'string' 
+            ? item.account.toLowerCase().includes(query) 
+            : false
+          const matchesSubCategory = item.subCategory?.toLowerCase().includes(query) || false
+          const matchesCategory = item.category?.toLowerCase().includes(query) || false
+
+          return matchesTitle || matchesDescription || matchesOwner || matchesStatus || matchesAccount || matchesSubCategory || matchesCategory
+        })
+      }
+
+      return expandedItems
+    }
 
     return filteredItems
   }, [
@@ -1335,6 +1515,7 @@ export function RecommendationsList({
     }
     setIsPanelOpen(false)
     setCurrentlyViewedItemId(null)
+    setSelectedAccount(null) // Clear account selection when closing panel
   }
 
   const areSelectedItemsArchived = () => {
@@ -1624,10 +1805,39 @@ export function RecommendationsList({
 
   const handleRowClick = (item: any) => {
     // This function is now called directly from the div onClick
-    const archiveNote = item.archiveNote || archiveNotes.get(item.id)
-    const reviewNote = reviewNotes.get(item.id)
-    setSelectedItem({ ...item, archiveNote, reviewNote })
-    setCurrentlyViewedItemId(item.id)
+    // For SaaS account-level rows, use originalId to find the base recommendation
+    const itemId = item.originalId || item.id
+    const archiveNote = item.archiveNote || archiveNotes.get(itemId)
+    const reviewNote = reviewNotes.get(itemId)
+    
+    // For SaaS account-level rows, we need to get the original recommendation
+    // and add the account information to it
+    let itemToShow = { ...item }
+    if (item.originalId && dataSource === "saas") {
+      // Find the original recommendation from source items
+      const originalItem = sourceItems.find((srcItem: any) => srcItem.id === item.originalId)
+      if (originalItem) {
+        itemToShow = {
+          ...originalItem,
+          savings: originalItem.savingsFormatted,
+          icon: originalItem.provider === "azure" ? AzureIcon : originalItem.provider === "aws" ? AWSIcon : GoogleCloudIcon,
+          iconUrl: null,
+          account: item.account, // Preserve the account from the expanded row
+        }
+      }
+    }
+    
+    setSelectedItem({ ...itemToShow, archiveNote, reviewNote })
+    setCurrentlyViewedItemId(itemId)
+    setSelectedAccount(null) // Clear account selection when opening recommendation
+    setIsPanelOpen(true)
+  }
+
+  const handleAccountClick = (e: React.MouseEvent, account: string) => {
+    e.stopPropagation() // Prevent row click from firing
+    setSelectedAccount(account)
+    setSelectedItem(null) // Clear item selection
+    setCurrentlyViewedItemId(null)
     setIsPanelOpen(true)
   }
 
@@ -1744,7 +1954,7 @@ export function RecommendationsList({
               </div>
             </div>
             {/* CHANGE: Provider column changed to fixed width w-[180px] to hug content */}
-            {visibleColumns.provider && (
+            {visibleColumns.provider && dataSource !== "saas" && (
               <div className="flex-[1.2] min-w-[140px] mr-5 pr-3 border-r border-gray-200">
                 <div className="flex items-center justify-between group">
                   <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap text-left">
@@ -1783,7 +1993,9 @@ export function RecommendationsList({
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent className="w-48 p-2">
                           <div className="space-y-2">
-                            {(Object.keys(visibleColumns) as Array<keyof typeof visibleColumns>).map((column) => {
+                            {(Object.keys(visibleColumns) as Array<keyof typeof visibleColumns>)
+                              .filter((column) => dataSource !== "saas" || column !== "provider")
+                              .map((column) => {
                               const columnId = `column-${column}`
                               const columnLabel =
                                 column === "savings"
@@ -1849,7 +2061,61 @@ export function RecommendationsList({
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent className="w-48 p-2">
                           <div className="space-y-2">
-                            {(Object.keys(visibleColumns) as Array<keyof typeof visibleColumns>).map((column) => {
+                            {(Object.keys(visibleColumns) as Array<keyof typeof visibleColumns>)
+                              .filter((column) => dataSource !== "saas" || column !== "provider")
+                              .map((column) => {
+                              const columnId = `column-${column}`
+                              const columnLabel =
+                                column === "savings"
+                                  ? "Potential Savings"
+                                  : column === "category" && dataSource === "saas"
+                                    ? "Sub-category"
+                                    : column.charAt(0).toUpperCase() + column.slice(1)
+                              return (
+                                <div key={column} className="flex items-center space-x-2 px-2 py-1">
+                                  <Checkbox
+                                    id={columnId}
+                                    checked={visibleColumns[column]}
+                                    onCheckedChange={() => toggleColumn(column)}
+                                  />
+                                  <label htmlFor={columnId} className="text-sm flex-1 cursor-pointer">
+                                    {columnLabel}
+                                  </label>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            )}
+            {visibleColumns.account && dataSource === "saas" && (
+              <div className="flex-[1.2] min-w-[140px] mr-5 pr-3 border-r border-gray-200">
+                <div className="flex items-center justify-between group">
+                  <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
+                    Account
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1 hover:bg-gray-200 rounded">
+                        <MoreHorizontal className="h-3.5 w-3.5 text-gray-600" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-52">
+                      <DropdownMenuSeparator />
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <Columns3 className="h-3.5 w-3.5 mr-2" />
+                          Choose columns
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent className="w-48 p-2">
+                          <div className="space-y-2">
+                            {(Object.keys(visibleColumns) as Array<keyof typeof visibleColumns>)
+                              .filter((column) => dataSource !== "saas" || column !== "provider")
+                              .map((column) => {
                               const columnId = `column-${column}`
                               const columnLabel =
                                 column === "savings"
@@ -1922,7 +2188,9 @@ export function RecommendationsList({
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent className="w-48 p-2">
                           <div className="space-y-2">
-                            {(Object.keys(visibleColumns) as Array<keyof typeof visibleColumns>).map((column) => {
+                            {(Object.keys(visibleColumns) as Array<keyof typeof visibleColumns>)
+                              .filter((column) => dataSource !== "saas" || column !== "provider")
+                              .map((column) => {
                               const columnId = `column-${column}`
                               const columnLabel =
                                 column === "savings"
@@ -1988,7 +2256,9 @@ export function RecommendationsList({
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent className="w-48 p-2">
                           <div className="space-y-2">
-                            {(Object.keys(visibleColumns) as Array<keyof typeof visibleColumns>).map((column) => {
+                            {(Object.keys(visibleColumns) as Array<keyof typeof visibleColumns>)
+                              .filter((column) => dataSource !== "saas" || column !== "provider")
+                              .map((column) => {
                               const columnId = `column-${column}`
                               const columnLabel =
                                 column === "savings"
@@ -2055,7 +2325,9 @@ export function RecommendationsList({
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent className="w-48 p-2">
                           <div className="space-y-2">
-                            {(Object.keys(visibleColumns) as Array<keyof typeof visibleColumns>).map((column) => {
+                            {(Object.keys(visibleColumns) as Array<keyof typeof visibleColumns>)
+                              .filter((column) => dataSource !== "saas" || column !== "provider")
+                              .map((column) => {
                               const columnId = `column-${column}`
                               const columnLabel =
                                 column === "savings"
@@ -2188,7 +2460,7 @@ export function RecommendationsList({
                       </div>
 
                       {/* CHANGE: Provider column changed to fixed width w-[180px] to match header */}
-                      {visibleColumns.provider && (
+                      {visibleColumns.provider && dataSource !== "saas" && (
                         <div className="flex-[1.2] min-w-[140px] mr-5">
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -2215,6 +2487,28 @@ export function RecommendationsList({
                               <p>{dataSource === "saas" ? item.subCategory : item.category}</p>
                             </TooltipContent>
                           </Tooltip>
+                        </div>
+                      )}
+
+                      {visibleColumns.account && dataSource === "saas" && (
+                        <div className="flex-[1.2] min-w-[140px] mr-5">
+                          {item.account ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={(e) => handleAccountClick(e, item.account)}
+                                  className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline truncate cursor-pointer text-left"
+                                >
+                                  {item.account}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Click to view account details</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            <span className="text-xs font-medium text-muted-foreground">—</span>
+                          )}
                         </div>
                       )}
 
@@ -2532,7 +2826,7 @@ export function RecommendationsList({
                                     </div>
 
                                     {/* CHANGE: Provider column changed to fixed width w-[180px] to match header */}
-                                    {visibleColumns.provider && (
+                                    {visibleColumns.provider && dataSource !== "saas" && (
                                       <div className="flex-[1.2] min-w-[140px] mr-5">
                                         <Tooltip>
                                           <TooltipTrigger asChild>
@@ -2563,6 +2857,28 @@ export function RecommendationsList({
                                             <p>{dataSource === "saas" ? item.subCategory : item.category}</p>
                                           </TooltipContent>
                                         </Tooltip>
+                                      </div>
+                                    )}
+
+                                    {visibleColumns.account && dataSource === "saas" && (
+                                      <div className="flex-[1.2] min-w-[140px] mr-5">
+                                        {item.account ? (
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <button
+                                                onClick={(e) => handleAccountClick(e, item.account)}
+                                                className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline truncate cursor-pointer text-left"
+                                              >
+                                                {item.account}
+                                              </button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              <p>Click to view account details</p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        ) : (
+                                          <span className="text-xs font-medium text-muted-foreground">—</span>
+                                        )}
                                       </div>
                                     )}
 
@@ -2812,7 +3128,7 @@ export function RecommendationsList({
                                   </div>
 
                                   {/* CHANGE: Provider column changed to fixed width w-[180px] to match header */}
-                                  {visibleColumns.provider && (
+                                  {visibleColumns.provider && dataSource !== "saas" && (
                                     <div className="flex-[1.2] min-w-[140px] mr-5">
                                       <Tooltip>
                                         <TooltipTrigger asChild>
@@ -2843,6 +3159,28 @@ export function RecommendationsList({
                                           <p>{dataSource === "saas" ? item.subCategory : item.category}</p>
                                         </TooltipContent>
                                       </Tooltip>
+                                    </div>
+                                  )}
+
+                                  {visibleColumns.account && dataSource === "saas" && (
+                                    <div className="flex-[1.2] min-w-[140px] mr-5">
+                                      {item.account ? (
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <button
+                                              onClick={(e) => handleAccountClick(e, item.account)}
+                                              className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline truncate cursor-pointer text-left"
+                                            >
+                                              {item.account}
+                                            </button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Click to view account details</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      ) : (
+                                        <span className="text-xs font-medium text-muted-foreground">—</span>
+                                      )}
                                     </div>
                                   )}
 
@@ -3108,14 +3446,16 @@ export function RecommendationsList({
                     <X className="h-4 w-4" />
                     Unmark {selectedItems.size === 1 ? "item" : "items"}
                   </Button>
-                  <Button
-                    onClick={handleSendToIntegration}
-                    size="sm"
-                    className="gap-2 bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-blue-600"
-                  >
-                    <Send className="h-4 w-4" />
-                    {dataSource === "saas" ? "Action recommendation" : "Send to integration"}
-                  </Button>
+                  {dataSource !== "saas" && (
+                    <Button
+                      onClick={handleSendToIntegration}
+                      size="sm"
+                      className="gap-2 bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-blue-600"
+                    >
+                      <Send className="h-4 w-4" />
+                      Send to integration
+                    </Button>
+                  )}
                 </>
               ) : (
                 <>
@@ -3135,15 +3475,17 @@ export function RecommendationsList({
                     <Clock className="h-4 w-4" />
                     Snooze
                   </Button>
-                  <Button
-                    onClick={handleSendToIntegration}
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-blue-600"
-                  >
-                    <Send className="h-4 w-4" />
-                    {dataSource === "saas" ? "Action recommendation" : "Send to integration"}
-                  </Button>
+                  {dataSource !== "saas" && (
+                    <Button
+                      onClick={handleSendToIntegration}
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-blue-600"
+                    >
+                      <Send className="h-4 w-4" />
+                      Send to integration
+                    </Button>
+                  )}
                 </>
               )}
             </div>
@@ -3159,6 +3501,7 @@ export function RecommendationsList({
         onArchive={handleSidePanelArchive}
         onSendToIntegration={handleSidePanelSendToIntegration}
         dataSource={dataSource} // Pass dataSource prop to side panel so it shows correct button label
+        account={selectedAccount} // Pass selected account to show account details
       />
 
       <ArchiveModal

@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils"
 
 interface OptimizationDashboardProps {
   initialCategoryFilter?: string | null
+  initialProvider?: string | null
   dataSource?: "cloud" | "saas"
 }
 
@@ -85,7 +86,7 @@ const tagValues = [
   "sub-portfolio:IT: Security & Compliance",
 ]
 
-function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "cloud" }: OptimizationDashboardProps) {
+function OptimizationDashboardContent({ initialCategoryFilter, initialProvider, dataSource = "cloud" }: OptimizationDashboardProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const urlGroupBy = searchParams.get("groupBy")
@@ -94,11 +95,42 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
   const categories = dataSource === "saas" ? saasCategories : cloudCategories
   const recommendationsData = dataSource === "saas" ? allSaaSRecommendations : allRecommendations
 
+  // Map provider IDs to provider names for filtering
+  const getProviderNameFromId = (providerId: string): string => {
+    if (dataSource === "saas") {
+      const saasProviderMap: Record<string, string> = {
+        "microsoft-365": "Microsoft 365",
+        "m365": "Microsoft 365",
+        salesforce: "Salesforce",
+        adobe: "Adobe",
+        slack: "Slack",
+        zoom: "Zoom",
+      }
+      return saasProviderMap[providerId] || providerId
+    } else {
+      const cloudProviderMap: Record<string, string> = {
+        azure: "azure",
+        aws: "aws",
+        gcp: "gcp",
+      }
+      return cloudProviderMap[providerId] || providerId
+    }
+  }
+
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
   const [isDateCalendarMounted, setIsDateCalendarMounted] = useState(false)
 
   const [selectedPriorities, setSelectedPriorities] = useState<Set<string>>(new Set(["high", "medium", "low"]))
-  const [selectedProvider, setSelectedProvider] = useState<string>("all")
+  const [selectedProvider, setSelectedProvider] = useState<string>(initialProvider || "all")
+
+  // Update selectedProvider when initialProvider changes (e.g., when navigating between service pages)
+  // This must run AFTER view loading to ensure service-specific pages override view settings
+  useEffect(() => {
+    if (initialProvider) {
+      console.log(`[Provider Filter] Setting selectedProvider to "${initialProvider}" from initialProvider`)
+      setSelectedProvider(initialProvider)
+    }
+  }, [initialProvider])
   const [selectedType, setSelectedType] = useState<string>("all-types")
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>("all-time")
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(
@@ -222,7 +254,15 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
 
   const { counts: providerCounts, total: totalRecommendations } = getProviderCounts()
 
-  const availableProviders = providers.filter((provider) => providerCounts[provider.id] > 0)
+  // Map provider IDs to names for counting
+  const getProviderNameForCount = (providerId: string): string => {
+    return getProviderNameFromId(providerId)
+  }
+
+  const availableProviders = providers.filter((provider) => {
+    const providerName = getProviderNameForCount(provider.id)
+    return providerCounts[providerName] > 0
+  })
 
   const getSubCategoryCounts = () => {
     const counts: Record<string, number> = {}
@@ -238,7 +278,10 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
       if (selectedStatuses.size > 0 && !selectedStatuses.has(rec.status)) return false
 
       // Provider filter
-      if (selectedProvider !== "all" && rec.provider !== selectedProvider) return false
+      if (selectedProvider !== "all") {
+        const providerName = getProviderNameFromId(selectedProvider)
+        if (rec.provider !== providerName) return false
+      }
 
       // Search query
       if (searchQuery && rec.title && !rec.title.toLowerCase().includes(searchQuery.toLowerCase())) return false
@@ -283,7 +326,10 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
       if (selectedStatuses.size > 0 && !selectedStatuses.has(rec.status)) return
 
       // Provider filter
-      if (selectedProvider !== "all" && rec.provider !== selectedProvider) return
+      if (selectedProvider !== "all") {
+        const providerName = getProviderNameFromId(selectedProvider)
+        if (rec.provider !== providerName) return
+      }
 
       // Search query
       if (searchQuery && rec.title && !rec.title.toLowerCase().includes(searchQuery.toLowerCase())) return
@@ -361,7 +407,10 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
     const activeView = getActiveView()
     setSelectedPriorities(new Set(activeView.config.selectedPriorities))
 
-    setSelectedProvider(activeView.config.selectedProvider)
+    // Only set provider from view config if we're not on a service-specific page
+    if (!initialProvider) {
+      setSelectedProvider(activeView.config.selectedProvider)
+    }
     setSelectedType(activeView.config.selectedType)
     setSelectedStatuses(new Set(activeView.config.selectedStatuses)) // Updated selectedStatuses from active view
     // Only set categories from view if there's no initialCategoryFilter
@@ -478,24 +527,25 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
   }
 
   const getProviderLabel = () => {
-    if (selectedProvider === "all") return "All Providers"
+    if (selectedProvider === "all") return "All"
 
     if (dataSource === "saas") {
       const saasProviderMap: Record<string, string> = {
         "microsoft-365": "Microsoft 365",
+        "m365": "Microsoft 365", // Handle m365 alias
         salesforce: "Salesforce",
         adobe: "Adobe",
         slack: "Slack",
         zoom: "Zoom",
       }
-      return saasProviderMap[selectedProvider] || "All Providers"
+      return saasProviderMap[selectedProvider] || selectedProvider
     } else {
       const cloudProviderMap: Record<string, string> = {
         azure: "Azure",
         aws: "AWS",
         gcp: "GCP",
       }
-      return cloudProviderMap[selectedProvider] || "All Providers"
+      return cloudProviderMap[selectedProvider] || selectedProvider
     }
   }
 
@@ -635,8 +685,8 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
     // 4. Date
     if (!isDateActive) filters.push({ id: "date", label: "Date" })
 
-    // 5. Provider
-    if (!isProviderActive) filters.push({ id: "provider", label: "Provider" })
+    // 5. Provider (only show if not on a provider-specific page)
+    if (!initialProvider && !isProviderActive) filters.push({ id: "provider", label: "Provider" })
 
     // 6. Tag Types
     if (!isTagTypeActive) filters.push({ id: "tagType", label: "Tag Types" })
@@ -704,7 +754,10 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
     saveView(name, templateConfig)
 
     setSelectedPriorities(new Set(templateConfig.selectedPriorities))
-    setSelectedProvider(templateConfig.selectedProvider)
+    // Only set provider from template if we're not on a service-specific page
+    if (!initialProvider) {
+      setSelectedProvider(templateConfig.selectedProvider)
+    }
     setSelectedType(templateConfig.selectedType)
     setSelectedStatuses(new Set(templateConfig.selectedStatuses))
     setSelectedCategories(templateConfig.selectedCategories?.[0] || categories[0].id)
@@ -899,7 +952,7 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
                           <label htmlFor="sub-category-chip-all" className="text-sm flex-1 cursor-pointer">
                             All
                           </label>
-                          <span className="text-xs text-muted-foreground">({totalSubCategoryCount})</span>
+                          <span className="text-xs text-muted-foreground">({totalSubCategoryCount.toLocaleString()})</span>
                         </div>
                         <div className="border-t border-border" />
                         {categorySubCategories[selectedCategories].map((subCategory) => (
@@ -916,7 +969,7 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
                               {subCategory}
                             </label>
                             <span className="text-xs text-muted-foreground">
-                              ({subCategoryCounts[subCategory] || 0})
+                              ({(subCategoryCounts[subCategory] || 0).toLocaleString()})
                             </span>
                           </div>
                         ))}
@@ -926,7 +979,85 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
                 </Popover>
               )}
 
-              {/* 3. Priority Filter */}
+              {/* 3. Provider Filter - Single select */}
+              {(openFilters.provider || isProviderActive) && (
+                <Popover open={openFilters.provider || false} onOpenChange={(open) => toggleFilter("provider", open)}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto ${
+                        isProviderActive
+                          ? "bg-blue-50 border-blue-200 hover:bg-blue-100"
+                          : "bg-transparent hover:bg-accent"
+                      }`}
+                    >
+                      <span className="font-medium">Provider:</span>
+                      <span>{getProviderLabel()}</span>
+                      <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-3 z-50" align="start">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold text-sm">Provider</h4>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedProvider("all")
+                            toggleFilter("provider", false)
+                          }}
+                          className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          Clear
+                        </Button>
+                      </div>
+                      <div className="space-y-1">
+                        <button
+                          onClick={() => {
+                            setSelectedProvider("all")
+                            toggleFilter("provider", false)
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${
+                            selectedProvider === "all"
+                              ? "bg-blue-50 text-blue-700 font-medium"
+                              : "hover:bg-accent text-foreground"
+                          }`}
+                        >
+                          <span>All</span>
+                          <span className="text-xs text-muted-foreground">({totalRecommendations})</span>
+                        </button>
+                        {providers.map((provider) => {
+                          // Check if selected - handle both direct ID match and mapped ID (e.g., "m365" matches "microsoft-365")
+                          const normalizedSelected = getProviderNameFromId(selectedProvider)
+                          const isSelected = selectedProvider === provider.id || 
+                                            (selectedProvider !== "all" && normalizedSelected === provider.label)
+                          const count = providerCounts[provider.label] || 0
+                          return (
+                            <button
+                              key={provider.id}
+                              onClick={() => {
+                                setSelectedProvider(provider.id)
+                                toggleFilter("provider", false)
+                              }}
+                              className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${
+                                isSelected
+                                  ? "bg-blue-50 text-blue-700 font-medium"
+                                  : "hover:bg-accent text-foreground"
+                              }`}
+                            >
+                              <span>{provider.label}</span>
+                              <span className="text-xs text-muted-foreground">({count})</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+
+              {/* 4. Priority Filter */}
               {(openFilters.priority || isPriorityActive) && (
                 <Popover open={openFilters.priority} onOpenChange={(open) => toggleFilter("priority", open)}>
                   <PopoverAnchor asChild>
@@ -1122,7 +1253,7 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
               )}
 
               {/* 6. Provider Filter */}
-              {(openFilters.provider || isProviderActive) && (
+              {!initialProvider && (openFilters.provider || isProviderActive) && (
                 <Popover open={openFilters.provider} onOpenChange={(open) => toggleFilter("provider", open)}>
                   <PopoverAnchor asChild>
                     <Button
@@ -1143,16 +1274,27 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <h4 className="font-semibold text-sm">Provider</h4>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedProvider("all")}
-                          className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
-                        >
-                          Clear
-                        </Button>
+                        {!initialProvider && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedProvider("all")}
+                            className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            Clear
+                          </Button>
+                        )}
                       </div>
-                      <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+                      <Select 
+                        value={selectedProvider} 
+                        onValueChange={(value) => {
+                          // Prevent changing provider when on a service-specific page
+                          if (!initialProvider || value === initialProvider) {
+                            setSelectedProvider(value)
+                          }
+                        }}
+                        disabled={!!initialProvider}
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
@@ -1221,7 +1363,7 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
                           <label htmlFor="sub-category-all" className="text-sm flex-1 cursor-pointer">
                             All
                           </label>
-                          <span className="text-xs text-muted-foreground">({totalSubCategoryCount})</span>
+                          <span className="text-xs text-muted-foreground">({totalSubCategoryCount.toLocaleString()})</span>
                         </div>
                         <div className="border-t border-border" />
                         {categorySubCategories[selectedCategories]?.map((subCategory) => (
@@ -1235,7 +1377,7 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
                               {subCategory}
                             </label>
                             <span className="text-xs text-muted-foreground">
-                              ({subCategoryCounts[subCategory] || 0})
+                              ({(subCategoryCounts[subCategory] || 0).toLocaleString()})
                             </span>
                           </div>
                         ))}
@@ -1743,6 +1885,7 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
               {(activeViewId === "pending-review" ||
                 activeViewId === "actioned" ||
                 activeViewId === "snoozed-archived") &&
+                !initialProvider &&
                 (openFilters.provider || isProviderActive) && (
                   <Popover open={openFilters.provider} onOpenChange={(open) => toggleFilter("provider", open)}>
                     <PopoverAnchor asChild>
@@ -1764,6 +1907,7 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <h4 className="font-semibold text-sm">Provider</h4>
+                        {!initialProvider && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1772,8 +1916,18 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
                           >
                             Clear
                           </Button>
-                        </div>
-                        <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+                        )}
+                      </div>
+                        <Select 
+                          value={selectedProvider} 
+                          onValueChange={(value) => {
+                            // Prevent changing provider when on a service-specific page
+                            if (!initialProvider || value === initialProvider) {
+                              setSelectedProvider(value)
+                            }
+                          }}
+                          disabled={!!initialProvider}
+                        >
                           <SelectTrigger className="w-full">
                             <SelectValue />
                           </SelectTrigger>
@@ -2079,7 +2233,7 @@ function OptimizationDashboardContent({ initialCategoryFilter, dataSource = "clo
 
       <RecommendationsList
         selectedPriorities={selectedPriorities}
-        selectedProvider={selectedProvider}
+        selectedProvider={selectedProvider !== "all" ? getProviderNameFromId(selectedProvider) : "all"}
         selectedType={selectedType}
         selectedStatuses={activeViewId === "actioned" ? new Set(["Actioned"]) : selectedStatuses}
         searchQuery={searchQuery}

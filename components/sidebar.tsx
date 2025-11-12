@@ -1,16 +1,18 @@
 "use client"
 
+import React, { startTransition } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Bot, Search, Settings, User, ChevronDown, Building2 } from "lucide-react"
+import { Home, Settings, User, ChevronDown, Bot } from "lucide-react"
 import { useManagement } from "@/lib/management-context"
 import { usePathname, useRouter } from "next/navigation"
 
-const navigationItems = [
-  { name: "Copilot", icon: Bot, href: "#" },
-  { name: "Discover", icon: Search, href: "#" },
-  { name: "Multi-Cloud", icon: Settings, href: "/optimization" },
-  { name: "Multi-SaaS", icon: Building2, href: "/saas/optimization" },
+const saasServices = [
+  { name: "Adobe", route: "/saas/adobe", providerName: "Adobe", providerId: "adobe" },
+  { name: "M365", route: "/saas/m365", providerName: "Microsoft 365", providerId: "m365" },
+  { name: "Salesforce", route: "/saas/salesforce", providerName: "Salesforce", providerId: "salesforce" },
+  { name: "Slack", route: "/saas/slack", providerName: "Slack", providerId: "slack" },
+  { name: "Zoom", route: "/saas/zoom", providerName: "Zoom", providerId: "zoom" },
 ]
 
 export function AppSidebar() {
@@ -18,26 +20,64 @@ export function AppSidebar() {
   const pathname = usePathname()
   const router = useRouter()
 
-  const handleNavClick = (item: (typeof navigationItems)[0]) => {
-    if (item.name === "Multi-Cloud") {
-      setManagementType("Multi-Cloud")
-      router.push("/optimization")
-    } else if (item.name === "Multi-SaaS") {
-      setManagementType("Multi-SaaS")
-      router.push("/saas/optimization")
-    } else if (item.href !== "#") {
-      router.push(item.href)
-    }
+  const handleHomeClick = (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    startTransition(() => {
+      router.push("/")
+    })
   }
 
-  const isActive = (item: (typeof navigationItems)[0]) => {
-    if (item.name === "Multi-Cloud") {
-      return !pathname.startsWith("/saas")
-    } else if (item.name === "Multi-SaaS") {
-      return pathname.startsWith("/saas")
-    }
-    return false
+  const handleCloudOverviewClick = (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    setManagementType("Multi-Cloud")
+    startTransition(() => {
+      router.push("/optimization")
+    })
   }
+
+  const handleCloudProviderClick = (route: string, e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    setManagementType("Multi-Cloud")
+    startTransition(() => {
+      router.push(route)
+    })
+  }
+
+  const handleSaaSOverviewClick = (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    setManagementType("Multi-SaaS")
+    startTransition(() => {
+      router.push("/saas/optimization")
+    })
+  }
+
+  const handleServiceClick = (route: string, e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    setManagementType("Multi-SaaS")
+    startTransition(() => {
+      router.push(route)
+    })
+  }
+
+  const handleConfigurationClick = (e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    startTransition(() => {
+      router.push("/configuration")
+    })
+  }
+
+  const isHomeActive = pathname === "/" && !pathname.startsWith("/optimization") && !pathname.startsWith("/saas")
+  const isCloudActive = pathname.startsWith("/optimization") || (pathname === "/" && managementType === "Multi-Cloud")
+  const isSaaSActive = pathname.startsWith("/saas")
+  const isServiceActive = (route: string) => pathname === route
+  const isConfigurationActive = pathname.startsWith("/configuration")
+
 
   return (
     <div className="w-60 bg-sidebar border-r border-sidebar-border flex flex-col">
@@ -54,29 +94,122 @@ export function AppSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-3">
+      <nav className="flex-1 p-3 overflow-y-auto">
         <ul className="space-y-1">
-          {navigationItems.map((item) => (
-            <li key={item.name}>
-              <Button
-                variant={isActive(item) ? "secondary" : "ghost"}
-                className={cn(
-                  "w-full justify-start gap-2 h-8 text-sm",
-                  isActive(item) && "bg-sidebar-accent text-sidebar-accent-foreground",
-                )}
-                onClick={() => handleNavClick(item)}
-              >
-                <item.icon className="w-4 h-4" />
-                {item.name}
-              </Button>
-            </li>
-          ))}
-        </ul>
+          {/* Home */}
+          <li>
+            <Button
+              variant="ghost"
+              disabled
+              className={cn(
+                "w-full justify-start gap-2 h-8 text-sm cursor-not-allowed opacity-50",
+              )}
+            >
+              <Home className="w-4 h-4" />
+              Home
+            </Button>
+          </li>
+          <li>
+            <Button
+              variant="ghost"
+              disabled
+              className={cn(
+                "w-full justify-start gap-2 h-8 text-sm cursor-not-allowed opacity-50",
+              )}
+            >
+              <Bot className="w-4 h-4" />
+              Cloud Assistant
+            </Button>
+          </li>
 
-        {/* Pinned Boards */}
-        <div className="mt-6">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Pinned Boards</h3>
-        </div>
+          {/* Multi-Cloud Section */}
+          <li className="mt-6">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 px-2">
+              MULTI-CLOUD
+            </div>
+            <ul className="space-y-1">
+              <li>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled
+                  className={cn(
+                    "w-full justify-start gap-2 h-8 text-sm cursor-not-allowed opacity-50",
+                  )}
+                >
+                  Overview
+                </Button>
+              </li>
+              <li>
+                <Button
+                  type="button"
+                  variant={pathname === "/optimization" || (pathname === "/" && managementType === "Multi-Cloud") || pathname.includes("provider=azure") ? "secondary" : "ghost"}
+                  className={cn(
+                    "w-full justify-start gap-2 h-8 text-sm",
+                    (pathname === "/optimization" || (pathname === "/" && managementType === "Multi-Cloud") || pathname.includes("provider=azure")) && "bg-sidebar-accent text-sidebar-accent-foreground",
+                  )}
+                  onClick={(e) => handleCloudOverviewClick(e)}
+                >
+                  Azure
+                </Button>
+              </li>
+            </ul>
+          </li>
+
+          {/* Multi-SaaS Section */}
+          <li className="mt-6">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 px-2">
+              MULTI-SAAS
+            </div>
+            <ul className="space-y-1">
+              <li>
+                <Button
+                  type="button"
+                  variant={pathname === "/saas/optimization" ? "secondary" : "ghost"}
+                  className={cn(
+                    "w-full justify-start gap-2 h-8 text-sm",
+                    pathname === "/saas/optimization" && "bg-sidebar-accent text-sidebar-accent-foreground",
+                  )}
+                  onClick={(e) => handleSaaSOverviewClick(e)}
+                >
+                  <span className="flex-1 text-left">Overview</span>
+                  <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">
+                    WIP
+                  </span>
+                </Button>
+              </li>
+              {saasServices.map((service) => (
+                <li key={service.name}>
+                  <Button
+                    type="button"
+                    variant={isServiceActive(service.route) ? "secondary" : "ghost"}
+                    className={cn(
+                      "w-full justify-start gap-2 h-8 text-sm",
+                      isServiceActive(service.route) && "bg-sidebar-accent text-sidebar-accent-foreground",
+                    )}
+                    onClick={(e) => handleServiceClick(service.route, e)}
+                  >
+                    {service.name}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </li>
+
+          {/* Configuration */}
+          <li className="mt-4">
+            <Button
+              variant="ghost"
+              disabled
+              className={cn(
+                "w-full justify-start gap-2 h-8 text-sm cursor-not-allowed opacity-50",
+              )}
+            >
+              <Settings className="w-4 h-4" />
+              Configuration
+            </Button>
+          </li>
+        </ul>
       </nav>
 
       {/* User Profile */}
