@@ -2,7 +2,6 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
-import { ManagementProvider } from "@/lib/management-context"
 import { Toaster } from "@/components/ui/toaster"
 
 const geistSans = Inter({
@@ -29,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ManagementProvider>{children}</ManagementProvider>
+        {children}
         <Toaster />
       </body>
     </html>
