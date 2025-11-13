@@ -2,73 +2,54 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { MoreHorizontal } from "lucide-react"
+import { MoreHorizontal, ArrowUp, Columns3, ChevronRight } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+} from "@/components/ui/dropdown-menu"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { suddenSpikesData, trendingConcernsData } from "@/lib/cost-anomaly-data"
 
-// Static dummy data
-const staticData = [
-  {
-    id: "1",
-    title: "Resize underutilized VM instances",
-    description: "Consider resizing VM instances that are consistently underutilized",
-    provider: "Azure",
-    category: "VM Optimisation",
-    date: "2024-01-15",
-    effort: "Medium",
-    priority: "High",
-    savings: "£12,450",
-    status: "New",
-  },
-  {
-    id: "2",
-    title: "Purchase Reserved Instances",
-    description: "Save costs by purchasing reserved instances for predictable workloads",
-    provider: "AWS",
-    category: "Reserved Instances",
-    date: "2024-01-20",
-    effort: "Easy",
-    priority: "Medium",
-    savings: "£8,900",
-    status: "Re-visit",
-  },
-  {
-    id: "3",
-    title: "Enable Hybrid Benefit",
-    description: "Apply Azure Hybrid Benefit to reduce licensing costs",
-    provider: "Azure",
-    category: "Hybrid Benefit",
-    date: "2024-01-25",
-    effort: "Easy",
-    priority: "High",
-    savings: "£15,200",
-    status: "New",
-  },
-  {
-    id: "4",
-    title: "Optimize storage costs",
-    description: "Move infrequently accessed data to cheaper storage tiers",
-    provider: "Google Cloud",
-    category: "Storage",
-    date: "2024-02-01",
-    effort: "Medium",
-    priority: "Low",
-    savings: "£5,300",
-    status: "Viewed",
-  },
-  {
-    id: "5",
-    title: "Implement Savings Plans",
-    description: "Replace on-demand instances with savings plans for better pricing",
-    provider: "AWS",
-    category: "Savings Plans",
-    date: "2024-02-05",
-    effort: "Medium",
-    priority: "Medium",
-    savings: "£22,100",
-    status: "New",
-  },
-]
+interface StaticTableProps {
+  activeTab?: string
+}
 
-export function StaticTable() {
+export function StaticTable({ activeTab = "sudden-spikes" }: StaticTableProps) {
+  const router = useRouter()
+  const staticData = activeTab === "trending-concerns" ? trendingConcernsData : suddenSpikesData
+  const [visibleColumns, setVisibleColumns] = useState({
+    resourceGroup: true,
+    classification: true,
+    severity: true,
+    costChange: true,
+  })
+
+  const toggleColumn = (column: keyof typeof visibleColumns) => {
+    setVisibleColumns((prev) => ({
+      ...prev,
+      [column]: !prev[column],
+    }))
+  }
+
+  const handleSort = (column: string, direction: "asc" | "desc") => {
+    // Static functionality - no actual sorting
+    console.log(`Sort ${column} ${direction}`)
+  }
+
+  const columns = [
+    { id: "resourceGroup", label: "Resource Group" },
+    { id: "classification", label: "Classification" },
+    { id: "severity", label: "Severity" },
+    { id: "costChange", label: "Cost Change" },
+  ]
+
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
       {/* Table Header */}
@@ -79,44 +60,204 @@ export function StaticTable() {
             disabled
           />
         </div>
-        <div className="flex-[2] min-w-[180px] max-w-[400px] mr-5 pr-3 border-r border-gray-200">
+        <div className="flex-[1.2] min-w-[150px] mr-5 pr-3 border-r border-gray-200">
           <div className="flex items-center justify-between group">
             <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
-              Recommendation
+              Resource Group
             </div>
-            <button className="p-1 hover:bg-gray-200 rounded opacity-50 cursor-not-allowed" disabled>
-              <MoreHorizontal className="h-3.5 w-3.5 text-gray-600" />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 hover:bg-gray-200 rounded">
+                  <MoreHorizontal className="h-3.5 w-3.5 text-gray-600" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-52">
+                <DropdownMenuItem onClick={() => handleSort("resourceGroup", "asc")}>
+                  <ArrowUp className="h-3.5 w-3.5 mr-2" />
+                  Sort Ascending
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleSort("resourceGroup", "desc")}>
+                  <ArrowUp className="h-3.5 w-3.5 mr-2 rotate-180" />
+                  Sort Descending
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Columns3 className="h-3.5 w-3.5 mr-2" />
+                    Choose columns
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-48 p-2">
+                    <div className="space-y-2">
+                      {columns.map((column) => {
+                        const columnId = `column-${column.id}`
+                        return (
+                          <div key={column.id} className="flex items-center space-x-2 px-2 py-1">
+                            <Checkbox
+                              id={columnId}
+                              checked={visibleColumns[column.id as keyof typeof visibleColumns]}
+                              onCheckedChange={() => toggleColumn(column.id as keyof typeof visibleColumns)}
+                            />
+                            <label htmlFor={columnId} className="text-sm flex-1 cursor-pointer">
+                              {column.label}
+                            </label>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-        <div className="flex-[1.2] min-w-[140px] mr-5 pr-3 border-r border-gray-200">
-          <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap text-left">
-            Provider
+        <div className="flex-[1.5] min-w-[180px] mr-5 pr-3 border-r border-gray-200">
+          <div className="flex items-center justify-between group">
+            <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
+              Classification
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 hover:bg-gray-200 rounded">
+                  <MoreHorizontal className="h-3.5 w-3.5 text-gray-600" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-52">
+                <DropdownMenuItem onClick={() => handleSort("classification", "asc")}>
+                  <ArrowUp className="h-3.5 w-3.5 mr-2" />
+                  Sort Ascending
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleSort("classification", "desc")}>
+                  <ArrowUp className="h-3.5 w-3.5 mr-2 rotate-180" />
+                  Sort Descending
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Columns3 className="h-3.5 w-3.5 mr-2" />
+                    Choose columns
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-48 p-2">
+                    <div className="space-y-2">
+                      {columns.map((column) => {
+                        const columnId = `column-${column.id}`
+                        return (
+                          <div key={column.id} className="flex items-center space-x-2 px-2 py-1">
+                            <Checkbox
+                              id={columnId}
+                              checked={visibleColumns[column.id as keyof typeof visibleColumns]}
+                              onCheckedChange={() => toggleColumn(column.id as keyof typeof visibleColumns)}
+                            />
+                            <label htmlFor={columnId} className="text-sm flex-1 cursor-pointer">
+                              {column.label}
+                            </label>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-        <div className="flex-[0.9] min-w-[110px] mr-5 pr-3 border-r border-gray-200">
-          <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
-            Category
-          </div>
-        </div>
-        <div className="flex-[0.8] min-w-[100px] mr-5 pr-3 border-r border-gray-200">
-          <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
-            Date
-          </div>
-        </div>
-        <div className="flex-[0.6] min-w-[70px] mr-5 pr-3 border-r border-gray-200">
-          <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
-            Effort
-          </div>
-        </div>
-        <div className="flex-[0.6] min-w-[70px] mr-5 pr-3 border-r border-gray-200">
-          <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
-            Priority
+        <div className="flex-[0.8] min-w-[90px] mr-5 pr-3 border-r border-gray-200">
+          <div className="flex items-center justify-between group">
+            <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
+              Severity
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 hover:bg-gray-200 rounded">
+                  <MoreHorizontal className="h-3.5 w-3.5 text-gray-600" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-52">
+                <DropdownMenuItem onClick={() => handleSort("severity", "asc")}>
+                  <ArrowUp className="h-3.5 w-3.5 mr-2" />
+                  Sort Ascending
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleSort("severity", "desc")}>
+                  <ArrowUp className="h-3.5 w-3.5 mr-2 rotate-180" />
+                  Sort Descending
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Columns3 className="h-3.5 w-3.5 mr-2" />
+                    Choose columns
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-48 p-2">
+                    <div className="space-y-2">
+                      {columns.map((column) => {
+                        const columnId = `column-${column.id}`
+                        return (
+                          <div key={column.id} className="flex items-center space-x-2 px-2 py-1">
+                            <Checkbox
+                              id={columnId}
+                              checked={visibleColumns[column.id as keyof typeof visibleColumns]}
+                              onCheckedChange={() => toggleColumn(column.id as keyof typeof visibleColumns)}
+                            />
+                            <label htmlFor={columnId} className="text-sm flex-1 cursor-pointer">
+                              {column.label}
+                            </label>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
         <div className="flex-[1] min-w-[120px]">
-          <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
-            Potential Savings
+          <div className="flex items-center justify-between group">
+            <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
+              Cost Change
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 hover:bg-gray-200 rounded">
+                  <MoreHorizontal className="h-3.5 w-3.5 text-gray-600" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-52">
+                <DropdownMenuItem onClick={() => handleSort("costChange", "asc")}>
+                  <ArrowUp className="h-3.5 w-3.5 mr-2" />
+                  Sort Ascending
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleSort("costChange", "desc")}>
+                  <ArrowUp className="h-3.5 w-3.5 mr-2 rotate-180" />
+                  Sort Descending
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Columns3 className="h-3.5 w-3.5 mr-2" />
+                    Choose columns
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-48 p-2">
+                    <div className="space-y-2">
+                      {columns.map((column) => {
+                        const columnId = `column-${column.id}`
+                        return (
+                          <div key={column.id} className="flex items-center space-x-2 px-2 py-1">
+                            <Checkbox
+                              id={columnId}
+                              checked={visibleColumns[column.id as keyof typeof visibleColumns]}
+                              onCheckedChange={() => toggleColumn(column.id as keyof typeof visibleColumns)}
+                            />
+                            <label htmlFor={columnId} className="text-sm flex-1 cursor-pointer">
+                              {column.label}
+                            </label>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -126,80 +267,53 @@ export function StaticTable() {
         {staticData.map((item) => (
           <div
             key={item.id}
-            className="flex items-center px-4 py-4 hover:bg-gray-50 transition-colors"
+            className="flex items-center px-4 py-4 hover:bg-gray-50 transition-colors cursor-pointer"
+            onClick={() => router.push(`/cost-anomaly/${item.id}`)}
           >
-            <div className="w-4 flex-shrink-0 mr-5">
+            <div className="w-4 flex-shrink-0 mr-5" onClick={(e) => e.stopPropagation()}>
               <Checkbox
                 className="h-4 w-4"
                 disabled
               />
             </div>
 
-            <div className="flex-[2] min-w-[180px] max-w-[400px] mr-5">
-              <div className="mb-1">
-                <Badge
-                  variant="secondary"
-                  className={`text-[10px] px-1.5 py-0 h-4 border ${
-                    item.status === "New"
-                      ? "bg-blue-50 text-blue-600 border-blue-200"
-                      : item.status === "Re-visit"
-                        ? "bg-cyan-50 text-cyan-700 border-cyan-200"
-                        : item.status === "Viewed"
-                          ? "bg-gray-100 text-gray-600 border-gray-300"
-                          : "bg-blue-50 text-blue-600 border-blue-200"
-                  }`}
-                >
-                  {item.status}
-                </Badge>
-              </div>
-              <h4 className="font-medium text-foreground text-sm mb-0.5 truncate">{item.title}</h4>
-              <p className="text-xs text-muted-foreground truncate">{item.description}</p>
+            <div className="flex-[1.2] min-w-[150px] mr-5">
+              <div className="font-medium text-foreground text-sm mb-0.5 truncate">{item.resourceGroup}</div>
+              <p className="text-xs text-muted-foreground truncate">{item.subIdentifier}</p>
             </div>
 
-            <div className="flex-[1.2] min-w-[140px] mr-5">
-              <span className="text-xs font-medium text-foreground truncate">{item.provider}</span>
+            <div className="flex-[1.5] min-w-[180px] mr-5">
+              <span className="text-xs text-foreground">{item.classification}</span>
             </div>
 
-            <div className="flex-[0.9] min-w-[110px] mr-5">
-              <span className="text-xs font-medium text-foreground truncate">{item.category}</span>
-            </div>
-
-            <div className="flex-[0.8] min-w-[100px] text-left mr-5">
-              <div className="text-xs text-muted-foreground">{item.date}</div>
-            </div>
-
-            <div className="flex-[0.6] min-w-[70px] text-left mr-5">
+            <div className="flex-[0.8] min-w-[90px] text-left mr-5">
               <Badge
                 variant="outline"
                 className={`text-[10px] px-1.5 py-0.5 ${
-                  item.effort === "Easy"
-                    ? "bg-green-50 text-green-700 border-green-200"
-                    : item.effort === "Medium"
-                      ? "bg-amber-50 text-amber-700 border-amber-200"
-                      : "bg-red-50 text-red-700 border-red-200"
-                }`}
-              >
-                {item.effort}
-              </Badge>
-            </div>
-
-            <div className="flex-[0.6] min-w-[70px] text-left mr-5">
-              <Badge
-                variant="outline"
-                className={`text-[10px] px-1.5 py-0.5 ${
-                  item.priority === "High"
+                  item.severity === "High"
                     ? "bg-red-50 text-red-700 border-red-200"
-                    : item.priority === "Medium"
+                    : item.severity === "Medium"
                       ? "bg-amber-50 text-amber-700 border-amber-200"
-                      : "bg-green-50 text-green-700 border-green-200"
+                      : "bg-yellow-50 text-yellow-700 border-yellow-200"
                 }`}
               >
-                {item.priority}
+                {item.severity}
               </Badge>
             </div>
 
             <div className="flex-[1] min-w-[120px]">
-              <span className="text-xs font-semibold text-green-600">{item.savings}</span>
+              <div className="flex flex-col">
+                <span className={`text-sm font-semibold ${
+                  item.costChangeDollar >= 0 ? "text-red-600" : "text-green-600"
+                }`}>
+                  {item.costChangeDollar >= 0 ? "+" : ""}${item.costChangeDollar.toLocaleString()}
+                </span>
+                <span className={`text-xs text-gray-600 ${
+                  item.costChangePercent >= 0 ? "" : ""
+                }`}>
+                  {item.costChangePercent >= 0 ? "Increased by " : "Decreased by "}{Math.abs(item.costChangePercent)}%
+                </span>
+              </div>
             </div>
           </div>
         ))}

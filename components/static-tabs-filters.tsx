@@ -12,36 +12,47 @@ import {
 } from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
 
-export function StaticTabsFilters() {
-  const [activeTab, setActiveTab] = useState("default")
+interface StaticTabsFiltersProps {
+  showOnlyFilterButton?: boolean
+  activeTab?: string
+  onTabChange?: (tabId: string) => void
+}
+
+export function StaticTabsFilters({ showOnlyFilterButton = false, activeTab: controlledActiveTab, onTabChange }: StaticTabsFiltersProps) {
+  const [internalActiveTab, setInternalActiveTab] = useState("sudden-spikes")
+  const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : internalActiveTab
+  
+  const handleTabChange = (tabId: string) => {
+    if (onTabChange) {
+      onTabChange(tabId)
+    } else {
+      setInternalActiveTab(tabId)
+    }
+  }
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchExpanded, setIsSearchExpanded] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState("VM Optimisation")
+  const [selectedCategory, setSelectedCategory] = useState("All Types")
   const [selectedSubCategory, setSelectedSubCategory] = useState("All")
-  const [groupBy, setGroupBy] = useState("Priority")
+  const [groupBy, setGroupBy] = useState("Type")
   const [addFilterOpen, setAddFilterOpen] = useState(false)
 
   const tabs = [
-    { id: "default", name: "Default View" },
-    { id: "pending-review", name: "Pending Review" },
-    { id: "snoozed-archived", name: "Snoozed & Archived" },
-    { id: "actioned", name: "Actioned" },
+    { id: "sudden-spikes", name: "Sudden Spikes" },
+    { id: "trending-concerns", name: "Trending Concerns" },
   ]
 
   const categories = [
-    "VM Optimisation",
-    "Reserved Instances",
-    "Hybrid Benefit",
-    "Savings Plans",
-    "DEVUAT",
+    "All Types",
+    "Sudden Spike",
+    "Trending Concern",
   ]
 
   const subCategories = [
     "All",
-    "Underutilized",
-    "Oversized",
-    "Idle",
-    "Right-sizing",
+    "Compute",
+    "Storage",
+    "Network",
+    "Database",
   ]
 
   return (
@@ -52,7 +63,7 @@ export function StaticTabsFilters() {
           {tabs.map((tab) => (
             <div
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-1 px-3 py-2 border-b-2 transition-all duration-200 ease-in-out cursor-pointer ${
                 activeTab === tab.id
                   ? "border-blue-600 text-blue-600 font-medium"
@@ -62,16 +73,6 @@ export function StaticTabsFilters() {
               <span className="text-sm">{tab.name}</span>
             </div>
           ))}
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 border-b-2 border-transparent text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200 ease-in-out cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            New View
-          </button>
         </div>
       </div>
 
@@ -95,90 +96,95 @@ export function StaticTabsFilters() {
           />
         </div>
 
-        {/* Category Filter */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-blue-50 border-blue-200 hover:bg-blue-100"
-            >
-              <span className="font-medium">Category:</span>
-              <span>{selectedCategory}</span>
-              <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64 p-3 z-50" align="start">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold text-sm">Category</h4>
-              </div>
-              <div className="space-y-2">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => {
-                      setSelectedCategory(category)
-                    }}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${
-                      selectedCategory === category
-                        ? "bg-blue-50 text-blue-700 font-medium"
-                        : "hover:bg-accent text-foreground"
-                    }`}
-                  >
-                    <span>{category}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+        {!showOnlyFilterButton && (
+          <>
 
-        {/* Sub-category Filter */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-blue-50 border-blue-200 hover:bg-blue-100"
-            >
-              <span className="font-medium">Sub-category:</span>
-              <span>{selectedSubCategory}</span>
-              <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64 p-3 z-50" align="start">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold text-sm">Sub-category</h4>
+            {/* Category Filter */}
+            <Popover>
+              <PopoverTrigger asChild>
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedSubCategory("All")}
-                  className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                  variant="outline"
+                  className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-blue-50 border-blue-200 hover:bg-blue-100"
                 >
-                  Clear
+                  <span className="font-medium">Category:</span>
+                  <span>{selectedCategory}</span>
+                  <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
                 </Button>
-              </div>
-              <div className="space-y-2.5">
-                {subCategories.map((subCategory) => (
-                  <div key={subCategory} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`sub-category-${subCategory}`}
-                      checked={selectedSubCategory === subCategory || (subCategory === "All" && selectedSubCategory === "All")}
-                      onCheckedChange={() => setSelectedSubCategory(subCategory)}
-                      disabled
-                    />
-                    <label
-                      htmlFor={`sub-category-${subCategory}`}
-                      className="text-sm flex-1 cursor-pointer"
-                    >
-                      {subCategory}
-                    </label>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-3 z-50" align="start">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-sm">Category</h4>
                   </div>
-                ))}
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+                  <div className="space-y-2">
+                    {categories.map((category) => (
+                      <button
+                        key={category}
+                        onClick={() => {
+                          setSelectedCategory(category)
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${
+                          selectedCategory === category
+                            ? "bg-blue-50 text-blue-700 font-medium"
+                            : "hover:bg-accent text-foreground"
+                        }`}
+                      >
+                        <span>{category}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Sub-category Filter */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-8 gap-1.5 px-3 text-sm relative z-10 pointer-events-auto bg-blue-50 border-blue-200 hover:bg-blue-100"
+                >
+                  <span className="font-medium">Sub-category:</span>
+                  <span>{selectedSubCategory}</span>
+                  <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-3 z-50" align="start">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-sm">Sub-category</h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedSubCategory("All")}
+                      className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                  <div className="space-y-2.5">
+                    {subCategories.map((subCategory) => (
+                      <div key={subCategory} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`sub-category-${subCategory}`}
+                          checked={selectedSubCategory === subCategory || (subCategory === "All" && selectedSubCategory === "All")}
+                          onCheckedChange={() => setSelectedSubCategory(subCategory)}
+                          disabled
+                        />
+                        <label
+                          htmlFor={`sub-category-${subCategory}`}
+                          className="text-sm flex-1 cursor-pointer"
+                        >
+                          {subCategory}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </>
+        )}
 
         {/* + Filter Button */}
         <Popover open={addFilterOpen} onOpenChange={setAddFilterOpen}>
@@ -227,37 +233,41 @@ export function StaticTabsFilters() {
           </PopoverContent>
         </Popover>
 
-        {/* Group by */}
-        <div className="flex items-center gap-1.5">
-          <Select value={groupBy} onValueChange={setGroupBy}>
-            <SelectTrigger className="h-8 gap-1.5 px-3 border border-border bg-transparent shadow-xs hover:bg-accent w-auto">
-              <div className="flex items-center gap-1.5">
-                <span className="font-medium">Group by:</span>
-                <SelectValue />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Priority">Priority</SelectItem>
-              <SelectItem value="Category">Category</SelectItem>
-              <SelectItem value="Effort">Effort</SelectItem>
-              <SelectItem value="Status">Status</SelectItem>
-              <SelectItem value="Provider">Provider</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {!showOnlyFilterButton && (
+          <>
+            {/* Group by */}
+            <div className="flex items-center gap-1.5">
+              <Select value={groupBy} onValueChange={setGroupBy}>
+                <SelectTrigger className="h-8 gap-1.5 px-3 border border-border bg-transparent shadow-xs hover:bg-accent w-auto">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium">Group by:</span>
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Type">Type</SelectItem>
+                  <SelectItem value="Severity">Severity</SelectItem>
+                  <SelectItem value="Provider">Provider</SelectItem>
+                  <SelectItem value="Service">Service</SelectItem>
+                  <SelectItem value="Status">Status</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        {/* Export button */}
-        <Button
-          variant="outline"
-          className="h-8 gap-1.5 px-3 text-sm bg-white hover:bg-gray-50 border border-border shadow-xs ml-auto"
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-          }}
-        >
-          <Download className="w-3.5 h-3.5" />
-          Export
-        </Button>
+            {/* Export button */}
+            <Button
+              variant="outline"
+              className="h-8 gap-1.5 px-3 text-sm bg-white hover:bg-gray-50 border border-border shadow-xs ml-auto"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+              }}
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export
+            </Button>
+          </>
+        )}
       </div>
     </div>
   )

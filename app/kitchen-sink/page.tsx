@@ -2,7 +2,7 @@
 
 import { StaticSidebar } from "@/components/static-sidebar"
 import { StaticHeader } from "@/components/static-header"
-import { StaticTable } from "@/components/static-table"
+import { StaticRecommendationsTable } from "@/components/static-recommendations-table"
 import { StaticOverviewCards } from "@/components/static-overview-cards"
 import { StaticCategories } from "@/components/static-categories"
 import { StaticTabsFilters } from "@/components/static-tabs-filters"
@@ -39,7 +39,7 @@ export default function KitchenSinkPage() {
 
             {/* Static Table */}
             <div className="mt-4">
-              <StaticTable />
+              <StaticRecommendationsTable />
             </div>
           </div>
         </main>
