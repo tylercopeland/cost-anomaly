@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { MoreHorizontal, ArrowUp, Columns3, ChevronRight } from "lucide-react"
+import { MoreHorizontal, ArrowUp, Columns3 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { suddenSpikesData, trendingConcernsData } from "@/lib/cost-anomaly-data"
 
@@ -21,15 +21,20 @@ interface StaticTableProps {
   activeTab?: string
 }
 
+type SortColumn = "severity" | "costChange" | null
+type SortDirection = "asc" | "desc"
+
 export function StaticTable({ activeTab = "sudden-spikes" }: StaticTableProps) {
   const router = useRouter()
-  const staticData = activeTab === "trending-concerns" ? trendingConcernsData : suddenSpikesData
+  const baseData = activeTab === "trending-concerns" ? trendingConcernsData : suddenSpikesData
   const [visibleColumns, setVisibleColumns] = useState({
     resourceGroup: true,
     classification: true,
     severity: true,
     costChange: true,
   })
+  const [sortColumn, setSortColumn] = useState<SortColumn>(null)
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
 
   const toggleColumn = (column: keyof typeof visibleColumns) => {
     setVisibleColumns((prev) => ({
@@ -39,9 +44,57 @@ export function StaticTable({ activeTab = "sudden-spikes" }: StaticTableProps) {
   }
 
   const handleSort = (column: string, direction: "asc" | "desc") => {
-    // Static functionality - no actual sorting
-    console.log(`Sort ${column} ${direction}`)
+    if (column === "severity" || column === "costChange") {
+      setSortColumn(column as SortColumn)
+      setSortDirection(direction)
+    }
   }
+
+  // Severity order: High = 3, Medium = 2, Low = 1
+  const getSeverityValue = (severity: string): number => {
+    switch (severity.toLowerCase()) {
+      case "high":
+        return 3
+      case "medium":
+        return 2
+      case "low":
+        return 1
+      default:
+        return 0
+    }
+  }
+
+  // Sort the data based on current sort state
+  const staticData = useMemo(() => {
+    const sorted = [...baseData].sort((a, b) => {
+      // If no explicit sort is selected, use default: severity desc, then cost change desc
+      if (!sortColumn) {
+        // First sort by severity (descending: High > Medium > Low)
+        const aSeverity = getSeverityValue(a.severity)
+        const bSeverity = getSeverityValue(b.severity)
+        if (aSeverity !== bSeverity) {
+          return bSeverity - aSeverity // Descending
+        }
+        // If severity is the same, sort by cost change (descending: highest first)
+        return b.costChangeDollar - a.costChangeDollar
+      }
+
+      // Explicit sort selected
+      let comparison = 0
+
+      if (sortColumn === "severity") {
+        const aValue = getSeverityValue(a.severity)
+        const bValue = getSeverityValue(b.severity)
+        comparison = aValue - bValue
+      } else if (sortColumn === "costChange") {
+        comparison = a.costChangeDollar - b.costChangeDollar
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison
+    })
+
+    return sorted
+  }, [baseData, sortColumn, sortDirection])
 
   const columns = [
     { id: "resourceGroup", label: "Resource Group" },
@@ -162,8 +215,11 @@ export function StaticTable({ activeTab = "sudden-spikes" }: StaticTableProps) {
         </div>
         <div className="flex-[0.8] min-w-[90px] mr-5 pr-3 border-r border-gray-200">
           <div className="flex items-center justify-between group">
-            <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
+            <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
               Severity
+              {sortColumn === "severity" && (
+                <ArrowUp className={`h-3 w-3 ${sortDirection === "desc" ? "rotate-180" : ""}`} />
+              )}
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -212,8 +268,11 @@ export function StaticTable({ activeTab = "sudden-spikes" }: StaticTableProps) {
         </div>
         <div className="flex-[1] min-w-[120px]">
           <div className="flex items-center justify-between group">
-            <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
+            <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
               Cost Change
+              {sortColumn === "costChange" && (
+                <ArrowUp className={`h-3 w-3 ${sortDirection === "desc" ? "rotate-180" : ""}`} />
+              )}
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
