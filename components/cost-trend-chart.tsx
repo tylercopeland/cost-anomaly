@@ -11,6 +11,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  ReferenceLine,
 } from "recharts"
 
 export interface CostTrendDataPoint {
@@ -31,6 +32,7 @@ interface CostTrendChartProps {
   average?: number
   showProjection?: boolean
   worstCaseProjection?: WorstCaseProjectionPoint[]
+  projectedTrendData?: WorstCaseProjectionPoint[]
   height?: number
 }
 
@@ -39,6 +41,7 @@ export function CostTrendChart({
   average,
   showProjection = false,
   worstCaseProjection,
+  projectedTrendData,
   height = 300,
 }: CostTrendChartProps) {
   if (!data || data.length === 0) {
@@ -88,6 +91,9 @@ export function CostTrendChart({
       : costsForAverage.length > 0
       ? costsForAverage.reduce((sum, cost) => sum + cost, 0) / costsForAverage.length
       : 0
+  
+  // Ensure baseline is set to 3200
+  const baselineValue = calculatedAverage || 3200
 
   // Merge worst-case projection data into chart data
   const worstCaseMap = new Map<string, number>()
@@ -97,30 +103,69 @@ export function CostTrendChart({
     })
   }
 
+  // Merge projected trend data (from monthly impact) into chart data
+  const projectedTrendMap = new Map<string, number>()
+  if (projectedTrendData && projectedTrendData.length > 0) {
+    projectedTrendData.forEach((point) => {
+      projectedTrendMap.set(point.date, point.value)
+    })
+  }
+
   // Prepare chart data - mix actual and projection
   const chartData = combinedData.map((point, index) => {
     const isProjection = index >= leftSideData.length
     // Try to find worst-case value by exact date match
     const worstCaseValue = worstCaseMap.get(point.date) || null
-    return {
+    // Use projected trend data if available (from monthly impact), otherwise use original projection
+    // Prioritize projectedTrendMap over original projection data
+    let projectionValue = null
+    if (projectedTrendMap.has(point.date)) {
+      projectionValue = projectedTrendMap.get(point.date) || null
+    } else if (isProjection && point.projection != null) {
+      projectionValue = point.projection
+    }
+    const dataPoint = {
       date: point.date,
       dailyCost: isProjection ? null : (point.dailyCost as number),
-      projection: isProjection ? point.projection : null,
+      projection: projectionValue,
       worstCaseValue: worstCaseValue,
       isAnomaly: point.isAnomaly ?? false,
-      average: calculatedAverage, // Always use calculatedAverage for consistent baseline
+      average: baselineValue, // Always use baselineValue for consistent baseline
     }
+    return dataPoint
+  })
+  
+  // Debug: Log projection data mapping
+  console.log('Projection Data Mapping:', {
+    projectedTrendMapEntries: Array.from(projectedTrendMap.entries()),
+    chartDataWithProjections: chartData.filter(d => d.projection != null).map(d => ({
+      date: d.date,
+      projection: d.projection,
+      isProjection: chartData.indexOf(d) >= leftSideData.length
+    }))
+  })
+
+  // Ensure baseline is set to 3200 for all points (already set in map above, but double-check)
+  chartData.forEach(point => {
+    point.average = baselineValue
   })
 
   // Debug: Log all data to verify rendering
+  const projectionDataPoints = chartData.filter(d => d.projection != null)
   console.log('Chart Data Summary:', {
     totalPoints: chartData.length,
     hasDailyCost: chartData.filter(d => d.dailyCost != null).length,
-    hasProjection: chartData.filter(d => d.projection != null).length,
+    hasProjection: projectionDataPoints.length,
     hasWorstCase: chartData.filter(d => d.worstCaseValue != null).length,
-    hasAverage: chartData.filter(d => d.average != null).length,
-    baseline: calculatedAverage,
-    worstCasePoints: worstCaseProjection?.length || 0
+    hasAverage: chartData.filter(d => d.average != null && d.average > 0).length,
+    baseline: baselineValue,
+    worstCasePoints: worstCaseProjection?.length || 0,
+    projectedTrendPoints: projectedTrendData?.length || 0,
+    showProjection,
+    projectionSample: projectionDataPoints.slice(0, 5).map(d => ({ date: d.date, projection: d.projection })),
+    projectedTrendMapSize: projectedTrendMap.size,
+    projectedTrendSample: projectedTrendData?.slice(0, 3),
+    allProjectionValues: projectionDataPoints.map(d => d.projection)
   })
 
   // Also add worst-case points that might not be in combinedData
@@ -136,7 +181,7 @@ export function CostTrendChart({
           projection: null,
           worstCaseValue: wcPoint.value,
           isAnomaly: false,
-          average: calculatedAverage,
+          average: baselineValue,
         })
       }
     })
@@ -179,6 +224,17 @@ export function CostTrendChart({
   const maxValue = Math.max(...allValues)
   const minValue = Math.min(...allValues)
   const yAxisPadding = (maxValue - minValue) * 0.1 // 10% padding
+  
+  // Debug: Log Y-axis domain and projection values
+  console.log('Y-Axis Domain Debug:', {
+    minValue,
+    maxValue,
+    yAxisPadding,
+    domainMin: Math.max(0, minValue - yAxisPadding),
+    domainMax: maxValue + yAxisPadding,
+    projectionValues: chartData.filter(d => d.projection != null).map(d => ({ date: d.date, projection: d.projection })),
+    allProjectionCount: chartData.filter(d => d.projection != null).length
+  })
 
   return (
     <div style={{ width: "100%", height: `${height}px`, minHeight: `${height}px` }}>
@@ -235,12 +291,6 @@ export function CostTrendChart({
               boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
             }}
           />
-          <Legend
-            wrapperStyle={{ fontSize: "12px", paddingTop: "20px" }}
-            iconType="circle"
-            align="left"
-            verticalAlign="bottom"
-          />
           {/* Daily Cost Area with gradient fill */}
           <Area
             type="monotone"
@@ -276,44 +326,27 @@ export function CostTrendChart({
             }}
             activeDot={{ r: 6 }}
           />
-          {/* Baseline Line - Green dashed line extending across entire chart */}
+          {/* Baseline Reference Line - Green dotted line at $3200 */}
+          <ReferenceLine
+            y={baselineValue}
+            stroke="#10b981"
+            strokeWidth={2}
+            strokeDasharray="5 5"
+          />
+          {/* Baseline Line for Legend - renders the same line but shows in legend */}
           <Line
             type="monotone"
             dataKey="average"
-            name={`Baseline (${formatCurrency(calculatedAverage)})`}
+            name="Baseline"
             stroke="#10b981"
             strokeWidth={2}
             strokeDasharray="5 5"
             dot={false}
             connectNulls={true}
             isAnimationActive={false}
+            strokeOpacity={1}
+            legendType="line"
           />
-          {/* Projection Line - shows trend if anomaly is not addressed */}
-          {showProjection && (
-            <Line
-              type="monotone"
-              dataKey="projection"
-              name="Projected Trend"
-              stroke="#f97316"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              dot={(props: any) => {
-                const { cx, cy, payload } = props
-                if (payload?.projection != null) {
-                  return (
-                    <polygon
-                      points={`${cx},${cy - 6} ${cx - 5},${cy + 4} ${cx + 5},${cy + 4}`}
-                      fill="#f97316"
-                      stroke="#fff"
-                      strokeWidth={1}
-                    />
-                  )
-                }
-                return null
-              }}
-              connectNulls={false}
-            />
-          )}
           {/* Worst-case Projection Line - pink dotted line with markers */}
           {worstCaseProjection && worstCaseProjection.length > 0 && (
             <Line
@@ -348,6 +381,57 @@ export function CostTrendChart({
               isAnimationActive={false}
             />
           )}
+          {/* Projection Line - shows trend if anomaly is not addressed - RENDERED LAST TO APPEAR ON TOP */}
+          {/* Force render by ensuring we have projection data */}
+          {(() => {
+            const hasProjectionData = chartData.some(d => d.projection != null && typeof d.projection === 'number')
+            console.log('Rendering Projection Line:', {
+              hasProjectionData,
+              projectionCount: chartData.filter(d => d.projection != null).length,
+              projectionValues: chartData.filter(d => d.projection != null).map(d => ({ date: d.date, projection: d.projection }))
+            })
+            return hasProjectionData ? (
+              <Line
+                type="monotone"
+                dataKey="projection"
+                name="Projected Trend"
+                stroke="#f97316"
+                strokeWidth={5}
+                strokeDasharray="8 4"
+                dot={(props: any) => {
+                  const { cx, cy, payload } = props
+                  if (payload?.projection != null && typeof payload.projection === 'number') {
+                    return (
+                      <polygon
+                        points={`${cx},${cy - 8} ${cx - 6},${cy + 5} ${cx + 6},${cy + 5}`}
+                        fill="#f97316"
+                        stroke="#fff"
+                        strokeWidth={3}
+                      />
+                    )
+                  }
+                  return null
+                }}
+                connectNulls={true}
+                isAnimationActive={false}
+                strokeOpacity={1}
+                activeDot={{ r: 8, fill: "#f97316" }}
+                style={{ zIndex: 100 }}
+              />
+            ) : null
+          })()}
+          <Legend
+            wrapperStyle={{ fontSize: "12px", paddingTop: "20px" }}
+            iconType="line"
+            align="left"
+            verticalAlign="bottom"
+            payload={[
+              { value: "Daily Cost", type: "monotone", id: "dailyCost", color: "#3b82f6" },
+              { value: "Baseline", type: "monotone", id: "baseline", color: "#10b981" },
+              ...(showProjection ? [{ value: "Projected Trend", type: "monotone", id: "projection", color: "#f97316" }] : []),
+              ...(worstCaseProjection && worstCaseProjection.length > 0 ? [{ value: "Worst-case Projection", type: "monotone", id: "worstCase", color: "#ec4899" }] : [])
+            ]}
+          />
         </AreaChart>
       </ResponsiveContainer>
     </div>

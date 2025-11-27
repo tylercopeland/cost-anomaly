@@ -6,7 +6,7 @@ import { StaticHeader } from "@/components/static-header"
 import { findCostAnomalyItem } from "@/lib/cost-anomaly-data"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { CostTrendChart, WorstCaseProjectionPoint } from "@/components/cost-trend-chart"
+import { CostTrendChart, WorstCaseProjectionPoint } from "@/components/cost-trend-chart-chartjs"
 import { Settings, Info } from "lucide-react"
 import {
   Tooltip,
@@ -52,6 +52,41 @@ export default function CostAnomalyDetailPage({
   const { id } = params
   const item = findCostAnomalyItem(id)
   const [isLearnMoreOpen, setIsLearnMoreOpen] = useState(false)
+
+  // Generate projection data from monthly impact - convert to daily values
+  const projectedTrendData: WorstCaseProjectionPoint[] | undefined = item?.projectedMonthlyImpact !== undefined && item?.costTrendData
+    ? (() => {
+        // Use the exact same filter logic as CostTrendChart component
+        const projectionDataPoints = item.costTrendData
+          .filter((point) => 
+            point.projection != null && 
+            typeof point.projection === "number" && 
+            (!point.dailyCost || point.dailyCost === null)
+          )
+          .slice(0, 7) // Only take first 7 to match what the chart displays
+        
+        if (projectionDataPoints.length === 0) return undefined
+
+        // Calculate projected daily cost from monthly impact
+        // Projected monthly = baselineDaily * 30 + projectedMonthlyImpact
+        // Projected daily average = (baselineDaily * 30 + projectedMonthlyImpact) / 30
+        const projectedDailyAverage = (item.baselineDaily * 30 + item.projectedMonthlyImpact) / 30
+
+        // Generate projection points using the same dates as projection data
+        const projectionPoints: WorstCaseProjectionPoint[] = projectionDataPoints.map((point) => ({
+          date: point.date,
+          value: projectedDailyAverage,
+        }))
+        
+        console.log('Generated Projected Trend Data:', {
+          projectedDailyAverage,
+          projectionPoints,
+          projectionDataPointsDates: projectionDataPoints.map(p => p.date)
+        })
+        
+        return projectionPoints.length > 0 ? projectionPoints : undefined
+      })()
+    : undefined
 
   // Generate worst-case projection data if worstCaseMonthlyCost exists
   // IMPORTANT: Use the exact same filter logic as the chart component
@@ -242,8 +277,9 @@ export default function CostAnomalyDetailPage({
                 {item.costTrendData ? (
                   <CostTrendChart
                     data={item.costTrendData}
-                    average={3200}
+                    average={item.baselineDaily}
                     showProjection={true}
+                    projectedTrendData={projectedTrendData}
                     worstCaseProjection={worstCaseProjection}
                     height={400}
                   />
