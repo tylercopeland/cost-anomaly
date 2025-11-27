@@ -17,10 +17,17 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
+import { Plus, X } from "lucide-react"
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -34,13 +41,13 @@ function formatCurrency(amount: number): string {
 function getSeverityColor(severity: string): string {
   switch (severity.toLowerCase()) {
     case "high":
-      return "bg-red-100 text-red-800 border-red-200"
+      return "bg-red-100 text-red-800 border-red-200 hover:bg-red-100"
     case "medium":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200"
+      return "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100"
     case "low":
-      return "bg-blue-100 text-blue-800 border-blue-200"
+      return "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100"
     default:
-      return "bg-gray-100 text-gray-800 border-gray-200"
+      return "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-100"
   }
 }
 
@@ -52,6 +59,9 @@ export default function CostAnomalyDetailPage({
   const { id } = params
   const item = findCostAnomalyItem(id)
   const [isLearnMoreOpen, setIsLearnMoreOpen] = useState(false)
+  const [smartTags, setSmartTags] = useState(item?.smartTags || [])
+  const [tagType, setTagType] = useState("")
+  const [tagValue, setTagValue] = useState("")
 
   // Generate projection data from monthly impact - convert to daily values
   const projectedTrendData: WorstCaseProjectionPoint[] | undefined = item?.projectedMonthlyImpact !== undefined && item?.costTrendData
@@ -307,23 +317,99 @@ export default function CostAnomalyDetailPage({
             </div>
 
             {/* Smart Tags */}
-            {item.smartTags && item.smartTags.length > 0 && (
-              <div className="flex flex-col">
-                <div className="min-h-[32px] flex items-start mb-2">
-                  <p className="text-sm font-semibold text-gray-900">Smart Tags</p>
-                </div>
+            <div className="flex flex-col">
+              <div className="min-h-[32px] flex items-center gap-2 mb-2">
+                <p className="text-sm font-semibold text-gray-900">Smart Tags</p>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="text-gray-500 hover:text-gray-700 transition-colors flex-shrink-0"
+                      aria-label="Manage smart tags"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[400px] p-4" align="start">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-gray-900">Manage Tags</h3>
+                      </div>
+                      
+                      {/* Existing Tags */}
+                      {smartTags.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap gap-2">
+                            {smartTags.map((tag, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-full px-3 py-1"
+                              >
+                                <span className="text-sm text-gray-800">{tag.key}: {tag.value}</span>
+                                <button
+                                  onClick={() => {
+                                    setSmartTags(smartTags.filter((_, i) => i !== index))
+                                  }}
+                                  className="text-gray-400 hover:text-gray-600 transition-colors ml-1"
+                                  aria-label={`Remove ${tag.key}: ${tag.value}`}
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Add New Tag */}
+                      <div className="space-y-2 pt-2 border-t border-gray-200">
+                        <p className="text-sm font-medium text-gray-900">Add New Tag</p>
+                        <div className="flex gap-2 min-w-0">
+                          <input
+                            type="text"
+                            placeholder="Type"
+                            value={tagType}
+                            onChange={(e) => setTagType(e.target.value)}
+                            className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Value"
+                            value={tagValue}
+                            onChange={(e) => setTagValue(e.target.value)}
+                            className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <button
+                            onClick={() => {
+                              if (tagType.trim() && tagValue.trim()) {
+                                setSmartTags([...smartTags, { key: tagType.trim(), value: tagValue.trim() }])
+                                setTagType("")
+                                setTagValue("")
+                              }
+                            }}
+                            className="flex-shrink-0 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors flex items-center justify-center"
+                            aria-label="Add tag"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+              {smartTags && smartTags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {item.smartTags.map((tag, index) => (
+                  {smartTags.map((tag, index) => (
                     <Badge
                       key={index}
-                      className="bg-gray-100 text-gray-800 border-gray-200 px-3 py-1"
+                      className="bg-gray-100 text-gray-800 border border-gray-200 px-3 py-1 rounded-full hover:bg-gray-100"
                     >
                       {tag.key}: {tag.value}
                     </Badge>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </main>
       </div>
@@ -331,106 +417,65 @@ export default function CostAnomalyDetailPage({
       {/* Learn More Modal */}
       <Dialog open={isLearnMoreOpen} onOpenChange={setIsLearnMoreOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+          <DialogHeader className="pb-4 border-b border-gray-200 -mx-6 px-6">
             <DialogTitle>Cost Anomaly Detection Settings</DialogTitle>
-            <DialogDescription>
-              Overview of anomaly detection parameters and filtering rules
-            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 mt-4">
-            {/* Overview Cards - Improved Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="p-5 bg-white border border-gray-200 hover:shadow-md transition-shadow">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-600">Sensitivity Level</p>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-2xl font-bold text-gray-900">High</p>
-                    <p className="text-sm text-gray-500">76/100</p>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
-                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: '76%' }}></div>
-                  </div>
+            {/* Detection Sensitivity */}
+            <Card className="p-4 bg-white border border-gray-200">
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-gray-900">Detection Sensitivity</h3>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold text-gray-900">High (76/100)</p>
                 </div>
-              </Card>
-              
-              <Card className="p-5 bg-white border border-gray-200 hover:shadow-md transition-shadow">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-600">Alert Threshold</p>
-                  <p className="text-2xl font-bold text-gray-900">5%</p>
-                  <p className="text-xs text-gray-500 mt-1">Minimum cost change required</p>
-                </div>
-              </Card>
-              
-              <Card className="p-5 bg-white border border-gray-200 hover:shadow-md transition-shadow">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-600">Cost Filtering</p>
-                  <div className="space-y-1">
-                    <p className="text-lg font-semibold text-gray-900">$10 minimum</p>
-                    <p className="text-sm text-gray-600">15% minimum change</p>
-                  </div>
-                </div>
-              </Card>
-              
-              <Card className="p-5 bg-white border border-gray-200 hover:shadow-md transition-shadow">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-600">Detection Methods</p>
-                  <p className="text-2xl font-bold text-gray-900">7</p>
-                  <p className="text-xs text-gray-500 mt-1">Active detection algorithms</p>
-                </div>
-              </Card>
-            </div>
-
-            {/* Cost Filtering Rules */}
-            <div className="space-y-4">
-              <h3 className="text-base font-semibold text-gray-900">Cost Filtering Rules</h3>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  These filters prevent alerts for very small or insignificant cost changes. Resource groups below these thresholds are excluded from anomaly detection.
-                </p>
-              </div>
-              <div className="space-y-4">
-                <div className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
-                  <div>
-                    <span className="text-sm font-medium text-gray-900 block">Minimum Cost Threshold</span>
-                    <span className="text-xs text-gray-500 mt-0.5">Absolute minimum cost to trigger alert</span>
-                  </div>
-                  <span className="text-base font-bold text-gray-900 ml-4">$10.00</span>
-                </div>
-                <div className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
-                  <div>
-                    <span className="text-sm font-medium text-gray-900 block">Minimum Variation</span>
-                    <span className="text-xs text-gray-500 mt-0.5">Minimum dollar amount change</span>
-                  </div>
-                  <span className="text-base font-bold text-gray-900 ml-4">$5.00</span>
-                </div>
-                <div className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
-                  <div>
-                    <span className="text-sm font-medium text-gray-900 block">Minimum Percentage</span>
-                    <span className="text-xs text-gray-500 mt-0.5">Minimum percentage change required</span>
-                  </div>
-                  <span className="text-base font-bold text-gray-900 ml-4">15%</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Admin Portal Access */}
-            <Card className="p-6 bg-gradient-to-br from-gray-50 to-white border border-gray-200">
-              <div className="flex flex-col gap-4">
-                <div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-1">Need to adjust settings?</h3>
-                  <p className="text-sm text-gray-600">
-                    Admins can adjust detection sensitivity and thresholds in the Admin Portal
-                  </p>
-                </div>
-                <Button className="w-auto self-start">
-                  Open Admin Portal
-                </Button>
+                <p className="text-sm text-gray-600">Controls how aggressively anomalies are detected based on recent usage patterns.</p>
               </div>
             </Card>
+
+            {/* Detection Methods */}
+            <Card className="p-4 bg-white border border-gray-200">
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-gray-900">Detection Methods</h3>
+                <p className="text-lg font-semibold text-gray-900">7 Active Detection Algorithms</p>
+                <p className="text-sm text-gray-600">Multiple models are used together to reduce false positives.</p>
+              </div>
+            </Card>
+
+            {/* Alert Trigger Conditions */}
+            <div className="space-y-3">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Conditions</h3>
+                <p className="text-sm text-gray-600 mt-1">Alerts fire only when changes exceed these thresholds.</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">Minimum % Change:</span>
+                  <span className="text-sm font-semibold text-gray-900">5%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">Minimum Dollar Change:</span>
+                  <span className="text-sm font-semibold text-gray-900">$10</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">Minimum Cost Variation:</span>
+                  <span className="text-sm font-semibold text-gray-900">$5</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">Low-spend resource groups are ignored</span>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <DialogFooter className="border-t border-gray-200 pt-4 -mx-6 px-6 mt-6">
+            <Button>
+              Manage Settings
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </div>
   )
 }

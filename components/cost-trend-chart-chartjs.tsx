@@ -25,6 +25,55 @@ ChartJS.register(
   Legend
 )
 
+// Plugin to draw vertical dotted line on hover
+const verticalLinePlugin = {
+  id: 'verticalLine',
+  afterEvent: (chart: any, args: any) => {
+    const { inChartArea } = args
+    const event = args.event
+    const type = event?.type || event?.native?.type
+    
+    // Get x position from event
+    let x = null
+    if (event?.x !== undefined) {
+      x = event.x
+    } else if (event?.native?.x !== undefined) {
+      x = event.native.x
+    } else if (event?.clientX !== undefined && chart.canvas) {
+      // Convert clientX to chart coordinates
+      const rect = chart.canvas.getBoundingClientRect()
+      x = event.clientX - rect.left
+    }
+    
+    if (type === 'mousemove' && inChartArea && x !== null) {
+      chart.verticalLineX = x
+      chart.draw()
+    } else if (type === 'mouseout') {
+      chart.verticalLineX = null
+      chart.draw()
+    }
+  },
+  afterDatasetsDraw: (chart: any) => {
+    if (chart.verticalLineX !== null && chart.verticalLineX !== undefined) {
+      const ctx = chart.ctx
+      const chartArea = chart.chartArea
+      const x = chart.verticalLineX
+      
+      if (x >= chartArea.left && x <= chartArea.right) {
+        ctx.save()
+        ctx.strokeStyle = '#9ca3af'
+        ctx.lineWidth = 1
+        ctx.setLineDash([5, 5])
+        ctx.beginPath()
+        ctx.moveTo(x, chartArea.top)
+        ctx.lineTo(x, chartArea.bottom)
+        ctx.stroke()
+        ctx.restore()
+      }
+    }
+  }
+}
+
 export interface CostTrendDataPoint {
   date: string
   dailyCost?: number | null
@@ -164,6 +213,14 @@ export function CostTrendChart({
         label: 'Daily Cost',
         data: dailyCostData,
         borderColor: '#10b981',
+        pointRadius: 0,
+        pointBackgroundColor: '#10b981',
+        pointBorderColor: '#10b981',
+        pointBorderWidth: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: '#10b981',
+        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderWidth: 2,
         backgroundColor: (context: any) => {
           if (!context.chart.chartArea) return 'transparent'
           const ctx = context.chart.ctx
@@ -209,6 +266,13 @@ export function CostTrendChart({
         fill: true, // Fill to the bottom (0 on Y-axis)
         tension: 0.4,
         pointRadius: 0,
+        pointBackgroundColor: '#10b981',
+        pointBorderColor: '#10b981',
+        pointBorderWidth: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: '#10b981',
+        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderWidth: 2,
         borderWidth: 2,
         order: 2, // Draw on top (above baseline)
       },
@@ -243,6 +307,13 @@ export function CostTrendChart({
         borderWidth: 2,
         fill: true,
         pointRadius: 0,
+        pointBackgroundColor: '#C5B5FD',
+        pointBorderColor: '#C5B5FD',
+        pointBorderWidth: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: '#C5B5FD',
+        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderWidth: 2,
         tension: 0,
         order: 1, // Draw behind Daily Cost
       },
@@ -256,6 +327,13 @@ export function CostTrendChart({
         borderWidth: 4,
         fill: false,
         pointRadius: 0,
+        pointBackgroundColor: '#f97316',
+        pointBorderColor: '#f97316',
+        pointBorderWidth: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: '#f97316',
+        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderWidth: 2,
         tension: 0.4,
         order: 3, // Draw third
       }] : []),
@@ -269,6 +347,13 @@ export function CostTrendChart({
         borderWidth: 2,
         fill: false,
         pointRadius: 0,
+        pointBackgroundColor: '#ec4899',
+        pointBorderColor: '#ec4899',
+        pointBorderWidth: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: '#ec4899',
+        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderWidth: 2,
         tension: 0.4,
         order: 4, // Draw fourth
       }] : []),
@@ -285,7 +370,7 @@ export function CostTrendChart({
         labels: {
           usePointStyle: false,
           boxWidth: 20,
-          boxHeight: 12,
+          boxHeight: 1,
           padding: 15,
           font: {
             size: 12,
@@ -308,35 +393,35 @@ export function CostTrendChart({
               return indexA - indexB;
             });
             
-            // Daily Cost and Baseline: filled boxes, others: lines only
+            // All items use stroke style (lines) only, no filled boxes
             labels.forEach((label: any) => {
               if (label.text === 'Daily Cost') {
-                label.fillStyle = '#10b981';
+                label.fillStyle = 'transparent';
                 label.strokeStyle = '#10b981';
                 label.lineWidth = 2;
                 label.boxWidth = 20;
-                label.boxHeight = 12;
+                label.boxHeight = 1;
               } else if (label.text === 'Baseline') {
-                label.fillStyle = '#C5B5FD';
+                label.fillStyle = 'transparent';
                 label.strokeStyle = '#C5B5FD';
                 label.lineWidth = 2;
                 label.borderDash = [5, 5];
                 label.boxWidth = 20;
-                label.boxHeight = 12;
+                label.boxHeight = 1;
               } else if (label.text === 'Projected Trend') {
                 label.fillStyle = 'transparent';
                 label.strokeStyle = '#f97316';
                 label.lineWidth = 2;
                 label.borderDash = [5, 5];
                 label.boxWidth = 20;
-                label.boxHeight = 2;
+                label.boxHeight = 1;
               } else if (label.text === 'Worst-case Projection') {
                 label.fillStyle = 'transparent';
                 label.strokeStyle = '#ec4899';
                 label.lineWidth = 2;
                 label.borderDash = [2, 4];
                 label.boxWidth = 20;
-                label.boxHeight = 2;
+                label.boxHeight = 1;
               }
             });
             return labels;
@@ -354,6 +439,10 @@ export function CostTrendChart({
         displayColors: false,
         intersect: false,
         mode: 'index' as const,
+        filter: function(tooltipItem: any) {
+          // Only show items that have valid values
+          return tooltipItem.parsed.y !== null && tooltipItem.parsed.y !== undefined
+        },
         callbacks: {
           title: function(context: any) {
             return context[0].label || ''
@@ -363,17 +452,23 @@ export function CostTrendChart({
             let label = ''
             
             if (datasetLabel === 'Daily Cost') {
-              label = 'Cumulative: '
+              label = 'Daily Cost: '
             } else if (datasetLabel === 'Baseline') {
-              label = 'Reserved Instance: '
+              label = 'Baseline: '
+            } else if (datasetLabel === 'Projected Trend') {
+              label = 'Projected Trend: '
+            } else if (datasetLabel === 'Worst-case Projection') {
+              label = 'Worst-case Projection: '
             } else {
               label = datasetLabel + ': '
             }
             
-            if (context.parsed.y !== null) {
+            if (context.parsed.y !== null && context.parsed.y !== undefined) {
               label += formatCurrency(context.parsed.y)
+              return label
             }
-            return label
+            // Hide if value is null or undefined
+            return null
           },
         },
       },
@@ -403,6 +498,7 @@ export function CostTrendChart({
         grid: {
           color: '#e5e7eb',
           drawBorder: false,
+          borderDash: [5, 5],
         },
         ticks: {
           font: {
@@ -413,13 +509,17 @@ export function CostTrendChart({
             return formatCurrency(value)
           },
         },
+        afterFit: function(scale: any) {
+          // Add padding to top to prevent clipping of worst-case projection line
+          scale.paddingTop = 20
+        },
       },
     },
   }
 
   return (
     <div style={{ width: "100%", height: `${height}px`, minHeight: `${height}px` }}>
-      <Line data={chartConfig} options={options} />
+      <Line data={chartConfig} options={options} plugins={[verticalLinePlugin]} />
     </div>
   )
 }
