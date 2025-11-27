@@ -6,7 +6,7 @@ import { StaticHeader } from "@/components/static-header"
 import { findCostAnomalyItem } from "@/lib/cost-anomaly-data"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { CostTrendChart } from "@/components/cost-trend-chart"
+import { CostTrendChart, WorstCaseProjectionPoint } from "@/components/cost-trend-chart"
 import { Settings, Info } from "lucide-react"
 import {
   Tooltip,
@@ -52,6 +52,34 @@ export default function CostAnomalyDetailPage({
   const { id } = params
   const item = findCostAnomalyItem(id)
   const [isLearnMoreOpen, setIsLearnMoreOpen] = useState(false)
+
+  // Generate worst-case projection data if worstCaseMonthlyCost exists
+  // IMPORTANT: Use the exact same filter logic as the chart component
+  const worstCaseProjection: WorstCaseProjectionPoint[] | undefined = item?.worstCaseMonthlyCost !== undefined && item?.costTrendData
+    ? (() => {
+        // Use the exact same filter logic as CostTrendChart component
+        const projectionDataPoints = item.costTrendData
+          .filter((point) => 
+            point.projection != null && 
+            typeof point.projection === "number" && 
+            (!point.dailyCost || point.dailyCost === null)
+          )
+          .slice(0, 7) // Only take first 7 to match what the chart displays
+        
+        if (projectionDataPoints.length === 0) return undefined
+
+        // Calculate worst-case daily cost (monthly / 30)
+        const worstCaseDaily = item.worstCaseMonthlyCost / 30
+
+        // Generate worst-case projection points using the same dates as projection data
+        const projectionPoints: WorstCaseProjectionPoint[] = projectionDataPoints.map((point) => ({
+          date: point.date,
+          value: worstCaseDaily,
+        }))
+        
+        return projectionPoints.length > 0 ? projectionPoints : undefined
+      })()
+    : undefined
 
   if (!item) {
     return (
@@ -214,7 +242,9 @@ export default function CostAnomalyDetailPage({
                 {item.costTrendData ? (
                   <CostTrendChart
                     data={item.costTrendData}
+                    average={3200}
                     showProjection={true}
+                    worstCaseProjection={worstCaseProjection}
                     height={400}
                   />
                 ) : (
