@@ -114,7 +114,7 @@ export function CostTrendChart({
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
           data={chartData} 
-          margin={{ top: 20, right: 40, left: 20, bottom: 80 }}
+          margin={{ top: 20, right: 40, left: 20, bottom: 40 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis
@@ -124,7 +124,7 @@ export function CostTrendChart({
             tickFormatter={formatDate}
             angle={-45}
             textAnchor="end"
-            height={60}
+            height={50}
           />
           <YAxis
             stroke="#6b7280"

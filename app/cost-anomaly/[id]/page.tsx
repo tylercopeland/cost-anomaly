@@ -7,7 +7,12 @@ import { findCostAnomalyItem } from "@/lib/cost-anomaly-data"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { CostTrendChart } from "@/components/cost-trend-chart"
-import { Settings } from "lucide-react"
+import { Settings, Info } from "lucide-react"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import {
   Dialog,
   DialogContent,
@@ -130,43 +135,74 @@ export default function CostAnomalyDetailPage({
             </div>
 
             {/* Summary metrics row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="p-6 bg-white border border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="p-4 bg-white border border-gray-200">
                 <div className="flex flex-col h-full">
-                  <div className="min-h-[32px] flex items-start">
+                  <div className="min-h-[32px] flex items-start mb-2.5">
                     <p className="text-xs font-medium text-gray-600">Normal Daily Cost</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-4">{formatCurrency(item.baselineDaily)}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-0">{formatCurrency(item.baselineDaily)}</p>
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-500">Baseline daily average</p>
+                  </div>
                 </div>
               </Card>
-              <Card className="p-6 bg-white border border-gray-200">
+              <Card className="p-4 bg-white border border-gray-200">
                 <div className="flex flex-col h-full">
-                  <div className="min-h-[32px] flex items-start">
+                  <div className="min-h-[32px] flex items-start mb-2.5">
                     <p className="text-xs font-medium text-gray-600">Current Daily Cost</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-4">{formatCurrency(item.currentDaily)}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-0">{formatCurrency(item.currentDaily)}</p>
                   <div className="mt-2">
                     <p className={`text-xs font-medium ${item.costChangeDollar >= 0 ? "text-red-600" : "text-green-600"}`}>
-                      {item.costChangeDollar > 0 ? "+" : ""}{formatCurrency(Math.abs(item.costChangeDollar))} ({item.costChangePercent > 0 ? "+" : ""}{item.costChangePercent.toFixed(0)}%) from baseline
+                      {item.costChangeDollar > 0 ? "+" : ""}{formatCurrency(Math.abs(item.costChangeDollar))} above baseline
                     </p>
                   </div>
                 </div>
               </Card>
-              <Card className="p-6 bg-white border border-gray-200">
+              <Card className="p-4 bg-white border border-gray-200">
                 <div className="flex flex-col h-full">
-                  <div className="min-h-[32px] flex items-start">
+                  <div className="min-h-[32px] flex items-start mb-2.5">
                     <p className="text-xs font-medium text-gray-600">Projected Monthly Cost</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-4">
+                  <p className="text-2xl font-bold text-gray-900 mt-0">
                     {formatCurrency(item.baselineDaily * 30 + item.projectedMonthlyImpact)}
                   </p>
                   <div className="mt-2">
                     <p className={`text-xs font-medium ${item.projectedMonthlyImpact >= 0 ? "text-red-600" : "text-green-600"}`}>
-                      {item.projectedMonthlyImpact > 0 ? "+" : ""}{formatCurrency(Math.abs(item.projectedMonthlyImpact))} above baseline
+                      {item.projectedMonthlyImpact > 0 ? "+" : ""}{formatCurrency(Math.abs(item.projectedMonthlyImpact))} above monthly baseline
                     </p>
                   </div>
                 </div>
               </Card>
+              {item.worstCaseMonthlyCost !== undefined && (
+                <Card className="p-4 bg-white border border-gray-200">
+                  <div className="flex flex-col h-full">
+                    <div className="min-h-[32px] flex items-start gap-1.5 mb-2.5">
+                      <p className="text-xs font-medium text-gray-600">Projected Risk</p>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-[200px]">
+                          <p>Calculated using the past 7-day growth rate added on top of the current anomaly.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900 mt-0">
+                      {formatCurrency(item.worstCaseMonthlyCost)}
+                    </p>
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs font-medium text-red-600">
+                        +{formatCurrency(item.worstCaseMonthlyCost - (item.baselineDaily * 30 + item.projectedMonthlyImpact))} above projected cost
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        If the current spike worsens
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              )}
             </div>
 
             {/* Cost Trend Chart */}

@@ -34,6 +34,7 @@ export interface CostAnomalyItem {
   baselineDaily: number
   currentDaily: number
   projectedMonthlyImpact: number
+  worstCaseMonthlyCost?: number
   causes: string[]
   sparklineData: number[] // Keep for backward compatibility
   costTrendData?: CostTrendDataPoint[] // New date-based trend data
@@ -56,6 +57,7 @@ export const suddenSpikesData: CostAnomalyItem[] = [
     baselineDaily: 2744,
     currentDaily: 3978,
     projectedMonthlyImpact: 37020,
+    worstCaseMonthlyCost: 145000,
     causes: [
       "Database instance was scaled up from 4 vCPUs to 8 vCPUs",
       "Increased read replica count from 1 to 3",
@@ -131,6 +133,7 @@ export const suddenSpikesData: CostAnomalyItem[] = [
     baselineDaily: 1772,
     currentDaily: 2339,
     projectedMonthlyImpact: 17010,
+    worstCaseMonthlyCost: 85000,
     causes: [
       "New development environment provisioned",
       "Additional compute instances added for testing"
@@ -253,6 +256,7 @@ export const suddenSpikesData: CostAnomalyItem[] = [
     baselineDaily: 1232,
     currentDaily: 1577,
     projectedMonthlyImpact: 10350,
+    worstCaseMonthlyCost: 55000,
     causes: [
       "Increased data processing workload",
       "Additional analytics jobs scheduled"
@@ -314,6 +318,7 @@ export const suddenSpikesData: CostAnomalyItem[] = [
     baselineDaily: 2821,
     currentDaily: 4711,
     projectedMonthlyImpact: 56700,
+    worstCaseMonthlyCost: 180000,
     causes: [
       "Backup retention policy changed from 30 to 90 days",
       "New backup jobs added for additional databases",
