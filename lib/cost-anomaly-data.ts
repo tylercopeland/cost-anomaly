@@ -136,6 +136,45 @@ export const suddenSpikesData: CostAnomalyItem[] = [
       "Additional compute instances added for testing"
     ],
     sparklineData: [1772, 1780, 1800, 1850, 1950, 2100, 2200, 2300, 2330, 2339],
+    costTrendData: [
+      // Last 14 days - all at normal daily cost (baseline)
+      { date: getDateString(-14), dailyCost: 1772 },
+      { date: getDateString(-13), dailyCost: 1772 },
+      { date: getDateString(-12), dailyCost: 1772 },
+      { date: getDateString(-11), dailyCost: 1772 },
+      { date: getDateString(-10), dailyCost: 1772 },
+      { date: getDateString(-9), dailyCost: 1772 },
+      { date: getDateString(-8), dailyCost: 1772 },
+      { date: getDateString(-7), dailyCost: 1772 },
+      { date: getDateString(-6), dailyCost: 1780 },
+      { date: getDateString(-5), dailyCost: 1800 },
+      { date: getDateString(-4), dailyCost: 1850 },
+      { date: getDateString(-3), dailyCost: 1950 },
+      { date: getDateString(-2), dailyCost: 2100 },
+      { date: getDateString(-1), dailyCost: 2200 },
+      // Anomaly spike - TODAY (sudden jump from stable baseline)
+      { date: getDateString(0), dailyCost: 2339, isAnomaly: true },
+      // Projection period - future days showing potential stabilization
+      { date: getDateString(1), dailyCost: null, projection: 2300 },
+      { date: getDateString(2), dailyCost: null, projection: 2250 },
+      { date: getDateString(3), dailyCost: null, projection: 2200 },
+      { date: getDateString(4), dailyCost: null, projection: 2150 },
+      { date: getDateString(5), dailyCost: null, projection: 2100 },
+      { date: getDateString(6), dailyCost: null, projection: 2050 },
+      { date: getDateString(7), dailyCost: null, projection: 2000 },
+      { date: getDateString(8), dailyCost: null, projection: 1950 },
+      { date: getDateString(9), dailyCost: null, projection: 1900 },
+      { date: getDateString(10), dailyCost: null, projection: 1850 },
+      { date: getDateString(11), dailyCost: null, projection: 1820 },
+      { date: getDateString(12), dailyCost: null, projection: 1800 },
+      { date: getDateString(13), dailyCost: null, projection: 1790 },
+    ].map((point) => ({
+      date: point.date,
+      dailyCost: point.dailyCost,
+      isAnomaly: point.isAnomaly,
+      average: 1772, // Average of stable baseline costs
+      projection: point.projection,
+    })),
     recommendedActions: [
       { title: "Schedule auto-shutdown for dev environments during non-business hours and weekends. This can reduce costs by up to 60% without impacting productivity.", action: "Configure", type: "primary" },
       { title: "Review resource allocation and right-size development instances. Many dev environments are over-provisioned and can run on smaller instance types.", action: "Review", type: "secondary" }
@@ -158,6 +197,45 @@ export const suddenSpikesData: CostAnomalyItem[] = [
       "Reduced compute resources after load testing completion"
     ],
     sparklineData: [1712, 1700, 1650, 1500, 1300, 1100, 950, 900, 850, 822],
+    costTrendData: [
+      // Last 14 days - all at normal daily cost (baseline)
+      { date: getDateString(-14), dailyCost: 1712 },
+      { date: getDateString(-13), dailyCost: 1712 },
+      { date: getDateString(-12), dailyCost: 1712 },
+      { date: getDateString(-11), dailyCost: 1712 },
+      { date: getDateString(-10), dailyCost: 1712 },
+      { date: getDateString(-9), dailyCost: 1712 },
+      { date: getDateString(-8), dailyCost: 1712 },
+      { date: getDateString(-7), dailyCost: 1712 },
+      { date: getDateString(-6), dailyCost: 1700 },
+      { date: getDateString(-5), dailyCost: 1650 },
+      { date: getDateString(-4), dailyCost: 1500 },
+      { date: getDateString(-3), dailyCost: 1300 },
+      { date: getDateString(-2), dailyCost: 1100 },
+      { date: getDateString(-1), dailyCost: 950 },
+      // Anomaly drop - TODAY (sudden decrease from stable baseline)
+      { date: getDateString(0), dailyCost: 822, isAnomaly: true },
+      // Projection period - future days showing continued low cost
+      { date: getDateString(1), dailyCost: null, projection: 850 },
+      { date: getDateString(2), dailyCost: null, projection: 870 },
+      { date: getDateString(3), dailyCost: null, projection: 890 },
+      { date: getDateString(4), dailyCost: null, projection: 900 },
+      { date: getDateString(5), dailyCost: null, projection: 910 },
+      { date: getDateString(6), dailyCost: null, projection: 920 },
+      { date: getDateString(7), dailyCost: null, projection: 930 },
+      { date: getDateString(8), dailyCost: null, projection: 940 },
+      { date: getDateString(9), dailyCost: null, projection: 950 },
+      { date: getDateString(10), dailyCost: null, projection: 960 },
+      { date: getDateString(11), dailyCost: null, projection: 970 },
+      { date: getDateString(12), dailyCost: null, projection: 980 },
+      { date: getDateString(13), dailyCost: null, projection: 990 },
+    ].map((point) => ({
+      date: point.date,
+      dailyCost: point.dailyCost,
+      isAnomaly: point.isAnomaly,
+      average: 1712, // Average of stable baseline costs
+      projection: point.projection,
+    })),
     recommendedActions: [
       { title: "Verify that the test environment shutdown was intentional and all resources have been properly decommissioned. Ensure no orphaned resources remain.", action: "Verify", type: "primary" },
       { title: "Document the cost savings achieved from decommissioning the test environment. This helps track optimization efforts and can inform future decisions.", action: "Document", type: "secondary" }
@@ -180,6 +258,45 @@ export const suddenSpikesData: CostAnomalyItem[] = [
       "Additional analytics jobs scheduled"
     ],
     sparklineData: [1232, 1240, 1260, 1300, 1350, 1420, 1480, 1520, 1550, 1577],
+    costTrendData: [
+      // Last 14 days - stable baseline, then gradual increase
+      { date: getDateString(-14), dailyCost: 1232 },
+      { date: getDateString(-13), dailyCost: 1232 },
+      { date: getDateString(-12), dailyCost: 1232 },
+      { date: getDateString(-11), dailyCost: 1232 },
+      { date: getDateString(-10), dailyCost: 1232 },
+      { date: getDateString(-9), dailyCost: 1232 },
+      { date: getDateString(-8), dailyCost: 1232 },
+      { date: getDateString(-7), dailyCost: 1232 },
+      { date: getDateString(-6), dailyCost: 1240 },
+      { date: getDateString(-5), dailyCost: 1260 },
+      { date: getDateString(-4), dailyCost: 1300 },
+      { date: getDateString(-3), dailyCost: 1350 },
+      { date: getDateString(-2), dailyCost: 1420 },
+      { date: getDateString(-1), dailyCost: 1480 },
+      // Anomaly spike - TODAY (sudden jump)
+      { date: getDateString(0), dailyCost: 1577, isAnomaly: true },
+      // Projection period - future days showing potential optimization
+      { date: getDateString(1), dailyCost: null, projection: 1550 },
+      { date: getDateString(2), dailyCost: null, projection: 1520 },
+      { date: getDateString(3), dailyCost: null, projection: 1500 },
+      { date: getDateString(4), dailyCost: null, projection: 1480 },
+      { date: getDateString(5), dailyCost: null, projection: 1460 },
+      { date: getDateString(6), dailyCost: null, projection: 1440 },
+      { date: getDateString(7), dailyCost: null, projection: 1420 },
+      { date: getDateString(8), dailyCost: null, projection: 1400 },
+      { date: getDateString(9), dailyCost: null, projection: 1380 },
+      { date: getDateString(10), dailyCost: null, projection: 1360 },
+      { date: getDateString(11), dailyCost: null, projection: 1340 },
+      { date: getDateString(12), dailyCost: null, projection: 1320 },
+      { date: getDateString(13), dailyCost: null, projection: 1300 },
+    ].map((point) => ({
+      date: point.date,
+      dailyCost: point.dailyCost,
+      isAnomaly: point.isAnomaly,
+      average: 1232, // Average of stable baseline costs
+      projection: point.projection,
+    })),
     recommendedActions: [
       { title: "Review job scheduling to consolidate overlapping analytics jobs and optimize run times. Consider batch processing during off-peak hours to reduce costs.", action: "Review", type: "primary" },
       { title: "Optimize data processing pipelines by implementing incremental processing instead of full table scans. This reduces compute requirements and costs.", action: "Optimize", type: "secondary" }
@@ -276,6 +393,45 @@ export const suddenSpikesData: CostAnomalyItem[] = [
       "Consolidated monitoring instances"
     ],
     sparklineData: [1300, 1280, 1250, 1200, 1150, 1120, 1100, 1080, 1070, 1066],
+    costTrendData: [
+      // Last 14 days - stable baseline, then gradual decrease
+      { date: getDateString(-14), dailyCost: 1300 },
+      { date: getDateString(-13), dailyCost: 1300 },
+      { date: getDateString(-12), dailyCost: 1300 },
+      { date: getDateString(-11), dailyCost: 1300 },
+      { date: getDateString(-10), dailyCost: 1300 },
+      { date: getDateString(-9), dailyCost: 1300 },
+      { date: getDateString(-8), dailyCost: 1300 },
+      { date: getDateString(-7), dailyCost: 1300 },
+      { date: getDateString(-6), dailyCost: 1280 },
+      { date: getDateString(-5), dailyCost: 1250 },
+      { date: getDateString(-4), dailyCost: 1200 },
+      { date: getDateString(-3), dailyCost: 1150 },
+      { date: getDateString(-2), dailyCost: 1120 },
+      { date: getDateString(-1), dailyCost: 1100 },
+      // Anomaly drop - TODAY (sudden decrease)
+      { date: getDateString(0), dailyCost: 1066, isAnomaly: true },
+      // Projection period - future days showing continued low cost
+      { date: getDateString(1), dailyCost: null, projection: 1080 },
+      { date: getDateString(2), dailyCost: null, projection: 1090 },
+      { date: getDateString(3), dailyCost: null, projection: 1100 },
+      { date: getDateString(4), dailyCost: null, projection: 1110 },
+      { date: getDateString(5), dailyCost: null, projection: 1120 },
+      { date: getDateString(6), dailyCost: null, projection: 1130 },
+      { date: getDateString(7), dailyCost: null, projection: 1140 },
+      { date: getDateString(8), dailyCost: null, projection: 1150 },
+      { date: getDateString(9), dailyCost: null, projection: 1160 },
+      { date: getDateString(10), dailyCost: null, projection: 1170 },
+      { date: getDateString(11), dailyCost: null, projection: 1180 },
+      { date: getDateString(12), dailyCost: null, projection: 1190 },
+      { date: getDateString(13), dailyCost: null, projection: 1200 },
+    ].map((point) => ({
+      date: point.date,
+      dailyCost: point.dailyCost,
+      isAnomaly: point.isAnomaly,
+      average: 1300, // Average of stable baseline costs
+      projection: point.projection,
+    })),
     recommendedActions: [
       { title: "Verify that monitoring coverage remains adequate after consolidation. Ensure critical metrics and alerts are still being captured without gaps.", action: "Verify", type: "primary" },
       { title: "Document the optimization changes made to the monitoring stack. This helps maintain institutional knowledge and can guide future optimizations.", action: "Document", type: "secondary" }

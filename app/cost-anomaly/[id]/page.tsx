@@ -237,59 +237,94 @@ export default function CostAnomalyDetailPage({
           </DialogHeader>
 
           <div className="space-y-6 mt-4">
-            {/* Overview Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="p-4 bg-white border border-gray-200">
-                <p className="text-xs font-medium text-gray-600 mb-1">Sensitivity Level</p>
-                <p className="text-lg font-semibold text-gray-900">High (76/100)</p>
+            {/* Overview Cards - Improved Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="p-5 bg-white border border-gray-200 hover:shadow-md transition-shadow">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-600">Sensitivity Level</p>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-2xl font-bold text-gray-900">High</p>
+                    <p className="text-sm text-gray-500">76/100</p>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
+                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: '76%' }}></div>
+                  </div>
+                </div>
               </Card>
-              <Card className="p-4 bg-white border border-gray-200">
-                <p className="text-xs font-medium text-gray-600 mb-1">Alert Threshold</p>
-                <p className="text-lg font-semibold text-gray-900">5% minimum change</p>
+              
+              <Card className="p-5 bg-white border border-gray-200 hover:shadow-md transition-shadow">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-600">Alert Threshold</p>
+                  <p className="text-2xl font-bold text-gray-900">5%</p>
+                  <p className="text-xs text-gray-500 mt-1">Minimum cost change required</p>
+                </div>
               </Card>
-              <Card className="p-4 bg-white border border-gray-200">
-                <p className="text-xs font-medium text-gray-600 mb-1">Cost Filtering</p>
-                <p className="text-lg font-semibold text-gray-900">$10 min / 15% min change</p>
+              
+              <Card className="p-5 bg-white border border-gray-200 hover:shadow-md transition-shadow">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-600">Cost Filtering</p>
+                  <div className="space-y-1">
+                    <p className="text-lg font-semibold text-gray-900">$10 minimum</p>
+                    <p className="text-sm text-gray-600">15% minimum change</p>
+                  </div>
+                </div>
               </Card>
-              <Card className="p-4 bg-white border border-gray-200">
-                <p className="text-xs font-medium text-gray-600 mb-1">Methods Active</p>
-                <p className="text-lg font-semibold text-gray-900">7 detection methods</p>
+              
+              <Card className="p-5 bg-white border border-gray-200 hover:shadow-md transition-shadow">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-600">Detection Methods</p>
+                  <p className="text-2xl font-bold text-gray-900">7</p>
+                  <p className="text-xs text-gray-500 mt-1">Active detection algorithms</p>
+                </div>
               </Card>
             </div>
 
             {/* Cost Filtering Rules */}
-            <Card className="p-6 bg-white border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">Cost Filtering Rules</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-700">Minimum Cost Threshold</span>
-                  <span className="text-sm font-semibold text-gray-900">$10.00</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-700">Minimum Variation</span>
-                  <span className="text-sm font-semibold text-gray-900">$5.00</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-700">Minimum Percentage</span>
-                  <span className="text-sm font-semibold text-gray-900">15%</span>
-                </div>
-              </div>
-              <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-gray-700">
+            <div className="space-y-4">
+              <h3 className="text-base font-semibold text-gray-900">Cost Filtering Rules</h3>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-gray-700 leading-relaxed">
                   These filters prevent alerts for very small or insignificant cost changes. Resource groups below these thresholds are excluded from anomaly detection.
                 </p>
               </div>
-            </Card>
+              <div className="space-y-4">
+                <div className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
+                  <div>
+                    <span className="text-sm font-medium text-gray-900 block">Minimum Cost Threshold</span>
+                    <span className="text-xs text-gray-500 mt-0.5">Absolute minimum cost to trigger alert</span>
+                  </div>
+                  <span className="text-base font-bold text-gray-900 ml-4">$10.00</span>
+                </div>
+                <div className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
+                  <div>
+                    <span className="text-sm font-medium text-gray-900 block">Minimum Variation</span>
+                    <span className="text-xs text-gray-500 mt-0.5">Minimum dollar amount change</span>
+                  </div>
+                  <span className="text-base font-bold text-gray-900 ml-4">$5.00</span>
+                </div>
+                <div className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
+                  <div>
+                    <span className="text-sm font-medium text-gray-900 block">Minimum Percentage</span>
+                    <span className="text-xs text-gray-500 mt-0.5">Minimum percentage change required</span>
+                  </div>
+                  <span className="text-base font-bold text-gray-900 ml-4">15%</span>
+                </div>
+              </div>
+            </div>
 
             {/* Admin Portal Access */}
-            <Card className="p-6 bg-white border border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">Need to adjust settings?</h3>
-              <p className="text-sm text-gray-700 mb-4">
-                Admins can adjust detection sensitivity and thresholds in the Admin Portal
-              </p>
-              <Button className="w-full sm:w-auto">
-                Open Admin Portal
-              </Button>
+            <Card className="p-6 bg-gradient-to-br from-gray-50 to-white border border-gray-200">
+              <div className="flex flex-col gap-4">
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900 mb-1">Need to adjust settings?</h3>
+                  <p className="text-sm text-gray-600">
+                    Admins can adjust detection sensitivity and thresholds in the Admin Portal
+                  </p>
+                </div>
+                <Button className="w-auto self-start">
+                  Open Admin Portal
+                </Button>
+              </div>
             </Card>
           </div>
         </DialogContent>

@@ -16,6 +16,11 @@ const nextConfig = {
         fs: false,
       }
     }
+    // Ensure CSS extraction plugins are preserved
+    if (config.plugins) {
+      // Keep existing plugins including CSS extraction
+      config.plugins = config.plugins.filter(Boolean)
+    }
     return config
   },
 }
