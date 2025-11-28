@@ -136,7 +136,7 @@ export function StaticTable({
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
         {/* Table Header */}
-      <div className="flex items-center px-4 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-muted-foreground tracking-wide">
+      <div className="flex items-center px-4 py-[10px] bg-gray-50 border-b border-gray-200 text-xs font-semibold text-muted-foreground tracking-wide">
         <div className="w-4 flex-shrink-0 mr-5">
           <Checkbox
             className="h-4 w-4"
@@ -188,7 +188,7 @@ export function StaticTable({
         {staticData.map((item) => (
           <div
             key={item.id}
-            className="flex items-center px-4 py-4 hover:bg-gray-50 transition-colors cursor-pointer"
+            className="flex items-center px-4 py-[15px] hover:bg-gray-50 transition-colors cursor-pointer"
             onClick={() => router.push(`/cost-anomaly/${item.id}`)}
           >
             <div className="w-4 flex-shrink-0 mr-5" onClick={(e) => e.stopPropagation()}>
