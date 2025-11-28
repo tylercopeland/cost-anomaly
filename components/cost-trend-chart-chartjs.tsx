@@ -267,14 +267,6 @@ export function CostTrendChart({
         },
         fill: true, // Fill to the bottom (0 on Y-axis)
         tension: 0.4,
-        pointRadius: 0,
-        pointBackgroundColor: '#10b981',
-        pointBorderColor: '#10b981',
-        pointBorderWidth: 0,
-        pointHoverRadius: 5,
-        pointHoverBackgroundColor: '#10b981',
-        pointHoverBorderColor: '#ffffff',
-        pointHoverBorderWidth: 2,
         borderWidth: 2,
         order: 2, // Draw on top (above baseline)
       },
@@ -365,7 +357,9 @@ export function CostTrendChart({
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: false,
+    animation: {
+      duration: 0,
+    },
     plugins: {
       legend: {
         position: 'bottom' as const,

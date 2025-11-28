@@ -1,19 +1,47 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { StaticSidebar } from "@/components/static-sidebar"
 import { StaticHeader } from "@/components/static-header"
 import { StaticTable } from "@/components/static-table"
 import { StaticTabsFilters } from "@/components/static-tabs-filters"
+import { suddenSpikesData, trendingConcernsData } from "@/lib/cost-anomaly-data"
 
 export default function CostAnomalyPage() {
   const [activeTab, setActiveTab] = useState("sudden-spikes")
   const [selectedClassification, setSelectedClassification] = useState<string | null>(null)
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null)
-  const [filterType, setFilterType] = useState<'classification' | 'severity' | null>(null)
+  const [activeFilters, setActiveFilters] = useState<('classification' | 'severity')[]>([])
 
-  const handleFilterSelect = (type: 'classification' | 'severity') => {
-    setFilterType(type)
+  const baseData = activeTab === "trending-concerns" ? trendingConcernsData : suddenSpikesData
+
+  // Get unique classifications and severities
+  const availableClassifications = useMemo(() => {
+    const classifications = new Set(baseData.map(item => item.classification))
+    return Array.from(classifications).sort()
+  }, [baseData])
+
+  const availableSeverities = useMemo(() => {
+    const severities = new Set(baseData.map(item => item.severity))
+    return Array.from(severities).sort((a, b) => {
+      const order = { 'High': 3, 'Medium': 2, 'Low': 1 }
+      return (order[b as keyof typeof order] || 0) - (order[a as keyof typeof order] || 0)
+    })
+  }, [baseData])
+
+  const handleAddFilter = (type: 'classification' | 'severity') => {
+    if (!activeFilters.includes(type)) {
+      setActiveFilters([...activeFilters, type])
+    }
+  }
+
+  const handleRemoveFilter = (type: 'classification' | 'severity') => {
+    setActiveFilters(activeFilters.filter(f => f !== type))
+    if (type === 'classification') {
+      setSelectedClassification(null)
+    } else {
+      setSelectedSeverity(null)
+    }
   }
 
   return (
@@ -33,7 +61,15 @@ export default function CostAnomalyPage() {
                 showOnlyFilterButton={true} 
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
-                onFilterSelect={handleFilterSelect}
+                activeFilters={activeFilters}
+                onAddFilter={handleAddFilter}
+                onRemoveFilter={handleRemoveFilter}
+                selectedClassification={selectedClassification}
+                selectedSeverity={selectedSeverity}
+                onClassificationChange={setSelectedClassification}
+                onSeverityChange={setSelectedSeverity}
+                availableClassifications={availableClassifications}
+                availableSeverities={availableSeverities}
               />
             </div>
 
@@ -45,8 +81,6 @@ export default function CostAnomalyPage() {
                 selectedSeverity={selectedSeverity}
                 onClassificationChange={setSelectedClassification}
                 onSeverityChange={setSelectedSeverity}
-                filterType={filterType}
-                onFilterTypeChange={setFilterType}
               />
             </div>
           </div>

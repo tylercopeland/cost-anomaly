@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -16,10 +16,31 @@ interface StaticTabsFiltersProps {
   showOnlyFilterButton?: boolean
   activeTab?: string
   onTabChange?: (tabId: string) => void
-  onFilterSelect?: (filterType: 'classification' | 'severity') => void
+  activeFilters?: ('classification' | 'severity')[]
+  onAddFilter?: (filterType: 'classification' | 'severity') => void
+  onRemoveFilter?: (filterType: 'classification' | 'severity') => void
+  selectedClassification?: string | null
+  selectedSeverity?: string | null
+  onClassificationChange?: (value: string | null) => void
+  onSeverityChange?: (value: string | null) => void
+  availableClassifications?: string[]
+  availableSeverities?: string[]
 }
 
-export function StaticTabsFilters({ showOnlyFilterButton = false, activeTab: controlledActiveTab, onTabChange, onFilterSelect }: StaticTabsFiltersProps) {
+export function StaticTabsFilters({ 
+  showOnlyFilterButton = false, 
+  activeTab: controlledActiveTab, 
+  onTabChange, 
+  activeFilters = [],
+  onAddFilter,
+  onRemoveFilter,
+  selectedClassification,
+  selectedSeverity,
+  onClassificationChange,
+  onSeverityChange,
+  availableClassifications = [],
+  availableSeverities = []
+}: StaticTabsFiltersProps) {
   const [internalActiveTab, setInternalActiveTab] = useState("sudden-spikes")
   const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : internalActiveTab
   
@@ -36,6 +57,21 @@ export function StaticTabsFilters({ showOnlyFilterButton = false, activeTab: con
   const [selectedSubCategory, setSelectedSubCategory] = useState("All")
   const [groupBy, setGroupBy] = useState("Type")
   const [addFilterOpen, setAddFilterOpen] = useState(false)
+  const [openFilterPopover, setOpenFilterPopover] = useState<'classification' | 'severity' | null>(null)
+  const prevActiveFiltersRef = useRef<('classification' | 'severity')[]>([])
+
+  // Detect newly added filters and open their dropdowns
+  useEffect(() => {
+    const prevFilters = prevActiveFiltersRef.current
+    const newFilters = activeFilters.filter(f => !prevFilters.includes(f))
+    
+    if (newFilters.length > 0) {
+      // Open the dropdown for the first newly added filter
+      setOpenFilterPopover(newFilters[0])
+    }
+    
+    prevActiveFiltersRef.current = activeFilters
+  }, [activeFilters])
 
   const tabs = [
     { id: "sudden-spikes", name: "Spikes" },
@@ -185,6 +221,70 @@ export function StaticTabsFilters({ showOnlyFilterButton = false, activeTab: con
           </>
         )}
 
+        {/* Active Filter Buttons */}
+        {activeFilters.map((filterType) => {
+          const filterLabel = filterType === 'classification' ? 'Classification' : 'Severity'
+          const selectedValue = filterType === 'classification' ? selectedClassification : selectedSeverity
+          const options = filterType === 'classification' ? availableClassifications : availableSeverities
+          const onChange = filterType === 'classification' ? onClassificationChange : onSeverityChange
+          const isOpen = openFilterPopover === filterType
+
+          return (
+            <Popover key={filterType} open={isOpen} onOpenChange={(open) => setOpenFilterPopover(open ? filterType : null)}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-8 gap-1.5 px-3 text-sm text-foreground hover:text-foreground bg-transparent relative z-10 pointer-events-auto"
+                >
+                  <span className="font-medium">{filterLabel}:</span>
+                  <span className="text-muted-foreground">{selectedValue || 'Select...'}</span>
+                  <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-3 z-50" align="start">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-sm">{filterLabel}</h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        onChange?.(null)
+                        onRemoveFilter?.(filterType)
+                      }}
+                      className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {options.map((option) => {
+                      const isSelected = selectedValue === option
+                      return (
+                        <div key={option} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`${filterType}-${option}`}
+                            checked={isSelected}
+                            onCheckedChange={(checked) => {
+                              onChange?.(checked ? option : null)
+                            }}
+                          />
+                          <label
+                            htmlFor={`${filterType}-${option}`}
+                            className="text-sm flex-1 cursor-pointer"
+                          >
+                            {option}
+                          </label>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )
+        })}
+
         {/* + Filter Button */}
         <Popover open={addFilterOpen} onOpenChange={setAddFilterOpen}>
           <PopoverTrigger asChild>
@@ -201,28 +301,32 @@ export function StaticTabsFilters({ showOnlyFilterButton = false, activeTab: con
               <div className="px-2 py-1.5">
                 <Input type="text" placeholder="Filter by..." className="h-8 text-sm" />
               </div>
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  onFilterSelect?.('classification')
-                  setAddFilterOpen(false)
-                }}
-                className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
-              >
-                Classification
-              </button>
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  onFilterSelect?.('severity')
-                  setAddFilterOpen(false)
-                }}
-                className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
-              >
-                Severity
-              </button>
+              {!activeFilters.includes('classification') && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    onAddFilter?.('classification')
+                    setAddFilterOpen(false)
+                  }}
+                  className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
+                >
+                  Classification
+                </button>
+              )}
+              {!activeFilters.includes('severity') && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    onAddFilter?.('severity')
+                    setAddFilterOpen(false)
+                  }}
+                  className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
+                >
+                  Severity
+                </button>
+              )}
             </div>
           </PopoverContent>
         </Popover>
