@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { MoreHorizontal, ArrowUp, Columns3 } from "lucide-react"
+import { MoreHorizontal, ArrowUp, Columns3, X } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,18 +13,37 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { suddenSpikesData, trendingConcernsData } from "@/lib/cost-anomaly-data"
 
 interface StaticTableProps {
   activeTab?: string
+  selectedClassification?: string | null
+  selectedSeverity?: string | null
+  onClassificationChange?: (value: string | null) => void
+  onSeverityChange?: (value: string | null) => void
+  filterType?: 'classification' | 'severity' | null
+  onFilterTypeChange?: (type: 'classification' | 'severity' | null) => void
 }
 
 type SortColumn = "severity" | "costChange" | null
 type SortDirection = "asc" | "desc"
 
-export function StaticTable({ activeTab = "sudden-spikes" }: StaticTableProps) {
+export function StaticTable({ 
+  activeTab = "sudden-spikes",
+  selectedClassification,
+  selectedSeverity,
+  onClassificationChange,
+  onSeverityChange,
+  filterType,
+  onFilterTypeChange
+}: StaticTableProps) {
   const router = useRouter()
   const baseData = activeTab === "trending-concerns" ? trendingConcernsData : suddenSpikesData
   const [visibleColumns, setVisibleColumns] = useState({
@@ -64,9 +83,35 @@ export function StaticTable({ activeTab = "sudden-spikes" }: StaticTableProps) {
     }
   }
 
-  // Sort the data based on current sort state
+  // Get unique classifications and severities for filter options
+  const uniqueClassifications = useMemo(() => {
+    const classifications = new Set(baseData.map(item => item.classification))
+    return Array.from(classifications).sort()
+  }, [baseData])
+
+  const uniqueSeverities = useMemo(() => {
+    const severities = new Set(baseData.map(item => item.severity))
+    return Array.from(severities).sort((a, b) => {
+      const order = { 'High': 3, 'Medium': 2, 'Low': 1 }
+      return (order[b as keyof typeof order] || 0) - (order[a as keyof typeof order] || 0)
+    })
+  }, [baseData])
+
+  // Sort and filter the data based on current sort state and filters
   const staticData = useMemo(() => {
-    const sorted = [...baseData].sort((a, b) => {
+    let filtered = [...baseData]
+    
+    // Apply classification filter
+    if (selectedClassification) {
+      filtered = filtered.filter(item => item.classification === selectedClassification)
+    }
+    
+    // Apply severity filter
+    if (selectedSeverity) {
+      filtered = filtered.filter(item => item.severity === selectedSeverity)
+    }
+    
+    const sorted = filtered.sort((a, b) => {
       // If no explicit sort is selected, use default: severity desc, then cost change desc
       if (!sortColumn) {
         // First sort by severity (descending: High > Medium > Low)
@@ -94,7 +139,7 @@ export function StaticTable({ activeTab = "sudden-spikes" }: StaticTableProps) {
     })
 
     return sorted
-  }, [baseData, sortColumn, sortDirection])
+  }, [baseData, sortColumn, sortDirection, selectedClassification, selectedSeverity])
 
   const columns = [
     { id: "resourceGroup", label: "Resource Group" },
@@ -104,8 +149,128 @@ export function StaticTable({ activeTab = "sudden-spikes" }: StaticTableProps) {
   ]
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
-      {/* Table Header */}
+    <div className="space-y-4">
+      {/* Filter Selection UI */}
+      {filterType && onFilterTypeChange && (
+        <Popover open={!!filterType} onOpenChange={(open) => !open && onFilterTypeChange(null)}>
+          <PopoverTrigger asChild>
+            <div></div>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-3" align="start">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold">
+                  Filter by {filterType === 'classification' ? 'Classification' : 'Severity'}
+                </h4>
+                <button
+                  onClick={() => onFilterTypeChange(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="space-y-1 max-h-64 overflow-y-auto">
+                {filterType === 'classification' ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        onClassificationChange?.(null)
+                        onFilterTypeChange(null)
+                      }}
+                      className={`w-full text-left px-2 py-1.5 text-sm rounded-sm ${
+                        !selectedClassification
+                          ? 'bg-accent font-medium'
+                          : 'hover:bg-accent'
+                      }`}
+                    >
+                      All Classifications
+                    </button>
+                    {uniqueClassifications.map((classification) => (
+                      <button
+                        key={classification}
+                        onClick={() => {
+                          onClassificationChange?.(classification)
+                          onFilterTypeChange(null)
+                        }}
+                        className={`w-full text-left px-2 py-1.5 text-sm rounded-sm ${
+                          selectedClassification === classification
+                            ? 'bg-accent font-medium'
+                            : 'hover:bg-accent'
+                        }`}
+                      >
+                        {classification}
+                      </button>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        onSeverityChange?.(null)
+                        onFilterTypeChange(null)
+                      }}
+                      className={`w-full text-left px-2 py-1.5 text-sm rounded-sm ${
+                        !selectedSeverity
+                          ? 'bg-accent font-medium'
+                          : 'hover:bg-accent'
+                      }`}
+                    >
+                      All Severities
+                    </button>
+                    {uniqueSeverities.map((severity) => (
+                      <button
+                        key={severity}
+                        onClick={() => {
+                          onSeverityChange?.(severity)
+                          onFilterTypeChange(null)
+                        }}
+                        className={`w-full text-left px-2 py-1.5 text-sm rounded-sm ${
+                          selectedSeverity === severity
+                            ? 'bg-accent font-medium'
+                            : 'hover:bg-accent'
+                        }`}
+                      >
+                        {severity}
+                      </button>
+                    ))}
+                  </>
+                )}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
+
+      {/* Active Filters Display */}
+      {(selectedClassification || selectedSeverity) && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {selectedClassification && (
+            <Badge variant="outline" className="gap-1.5">
+              Classification: {selectedClassification}
+              <button
+                onClick={() => onClassificationChange?.(null)}
+                className="hover:bg-gray-200 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
+          {selectedSeverity && (
+            <Badge variant="outline" className="gap-1.5">
+              Severity: {selectedSeverity}
+              <button
+                onClick={() => onSeverityChange?.(null)}
+                className="hover:bg-gray-200 rounded-full p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
+        </div>
+      )}
+
+      <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+        {/* Table Header */}
       <div className="flex items-center px-4 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-muted-foreground tracking-wide">
         <div className="w-4 flex-shrink-0 mr-5">
           <Checkbox
@@ -376,6 +541,7 @@ export function StaticTable({ activeTab = "sudden-spikes" }: StaticTableProps) {
             </div>
           </div>
         ))}
+      </div>
       </div>
     </div>
   )

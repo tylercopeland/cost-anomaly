@@ -16,9 +16,10 @@ interface StaticTabsFiltersProps {
   showOnlyFilterButton?: boolean
   activeTab?: string
   onTabChange?: (tabId: string) => void
+  onFilterSelect?: (filterType: 'classification' | 'severity') => void
 }
 
-export function StaticTabsFilters({ showOnlyFilterButton = false, activeTab: controlledActiveTab, onTabChange }: StaticTabsFiltersProps) {
+export function StaticTabsFilters({ showOnlyFilterButton = false, activeTab: controlledActiveTab, onTabChange, onFilterSelect }: StaticTabsFiltersProps) {
   const [internalActiveTab, setInternalActiveTab] = useState("sudden-spikes")
   const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : internalActiveTab
   
@@ -37,8 +38,8 @@ export function StaticTabsFilters({ showOnlyFilterButton = false, activeTab: con
   const [addFilterOpen, setAddFilterOpen] = useState(false)
 
   const tabs = [
-    { id: "sudden-spikes", name: "Sudden Spikes" },
-    { id: "trending-concerns", name: "Trending Concerns" },
+    { id: "sudden-spikes", name: "Spikes" },
+    { id: "trending-concerns", name: "Concerns" },
   ]
 
   const categories = [
@@ -57,33 +58,31 @@ export function StaticTabsFilters({ showOnlyFilterButton = false, activeTab: con
 
   return (
     <div className="space-y-4">
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-border bg-background">
-        <div className="flex items-center gap-1">
-          {tabs.map((tab) => (
-            <div
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id)}
-              className={`flex items-center gap-1 px-3 py-2 border-b-2 transition-all duration-200 ease-in-out cursor-pointer ${
-                activeTab === tab.id
-                  ? "border-blue-600 text-blue-600 font-medium"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-accent"
-              }`}
-            >
-              <span className="text-sm">{tab.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Filters */}
       <div className="flex items-center gap-1.5 flex-wrap">
+        {/* Segment Buttons */}
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5 h-8">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id)}
+              className={`px-3 h-full rounded-md text-sm font-medium transition-all duration-200 ease-in-out flex items-center ${
+                activeTab === tab.id
+                  ? "bg-white text-gray-900 border border-gray-200 shadow-sm font-semibold"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              {tab.name}
+            </button>
+          ))}
+        </div>
+
         {/* Search */}
         <div className={`relative transition-all duration-300 ease-in-out ${isSearchExpanded ? "w-64" : "w-24"}`}>
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <Input
             type="text"
-            placeholder={isSearchExpanded ? "Search recommendations" : "Q Search"}
+            placeholder={isSearchExpanded ? "Search recommendations" : "Search"}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setIsSearchExpanded(true)}
@@ -206,28 +205,23 @@ export function StaticTabsFilters({ showOnlyFilterButton = false, activeTab: con
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
+                  onFilterSelect?.('classification')
+                  setAddFilterOpen(false)
                 }}
                 className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
               >
-                Priority
+                Classification
               </button>
               <button
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
+                  onFilterSelect?.('severity')
+                  setAddFilterOpen(false)
                 }}
                 className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
               >
-                Provider
-              </button>
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                }}
-                className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
-              >
-                Status
+                Severity
               </button>
             </div>
           </PopoverContent>

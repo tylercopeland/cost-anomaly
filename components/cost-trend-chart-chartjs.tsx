@@ -74,6 +74,8 @@ const verticalLinePlugin = {
   }
 }
 
+
+
 export interface CostTrendDataPoint {
   date: string
   dailyCost?: number | null
@@ -363,10 +365,11 @@ export function CostTrendChart({
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: false,
     plugins: {
       legend: {
         position: 'bottom' as const,
-        align: 'start' as const,
+        align: 'center' as const,
         labels: {
           usePointStyle: false,
           boxWidth: 20,
@@ -447,28 +450,52 @@ export function CostTrendChart({
           title: function(context: any) {
             return context[0].label || ''
           },
-          label: function(context: any) {
-            const datasetLabel = context.dataset.label || ''
-            let label = ''
+          label: function() {
+            // Return empty string to hide default labels
+            // We'll show all labels in afterBody in the correct order
+            return ''
+          },
+          afterBody: function(context: any) {
+            // Define the desired order
+            const order = ['Worst-case Projection', 'Projected Trend', 'Daily Cost', 'Baseline']
             
-            if (datasetLabel === 'Daily Cost') {
-              label = 'Daily Cost: '
-            } else if (datasetLabel === 'Baseline') {
-              label = 'Baseline: '
-            } else if (datasetLabel === 'Projected Trend') {
-              label = 'Projected Trend: '
-            } else if (datasetLabel === 'Worst-case Projection') {
-              label = 'Worst-case Projection: '
-            } else {
-              label = datasetLabel + ': '
-            }
+            // Filter out items with null/undefined values and sort by desired order
+            const validItems = context.filter((item: any) => 
+              item.parsed.y !== null && item.parsed.y !== undefined
+            )
             
-            if (context.parsed.y !== null && context.parsed.y !== undefined) {
-              label += formatCurrency(context.parsed.y)
+            const sortedItems = [...validItems].sort((a: any, b: any) => {
+              const labelA = a.dataset.label || ''
+              const labelB = b.dataset.label || ''
+              const indexA = order.indexOf(labelA)
+              const indexB = order.indexOf(labelB)
+              
+              // If not found in order, put at end
+              if (indexA === -1) return 1
+              if (indexB === -1) return -1
+              return indexA - indexB
+            })
+            
+            // Return sorted labels
+            return sortedItems.map((item: any) => {
+              const datasetLabel = item.dataset.label || ''
+              let label = ''
+              
+              if (datasetLabel === 'Daily Cost') {
+                label = 'Daily Cost: '
+              } else if (datasetLabel === 'Baseline') {
+                label = 'Baseline: '
+              } else if (datasetLabel === 'Projected Trend') {
+                label = 'Projected Trend: '
+              } else if (datasetLabel === 'Worst-case Projection') {
+                label = 'Worst-case Projection: '
+              } else {
+                label = datasetLabel + ': '
+              }
+              
+              label += formatCurrency(item.parsed.y)
               return label
-            }
-            // Hide if value is null or undefined
-            return null
+            })
           },
         },
       },

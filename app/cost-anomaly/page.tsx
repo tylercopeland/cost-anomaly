@@ -8,6 +8,13 @@ import { StaticTabsFilters } from "@/components/static-tabs-filters"
 
 export default function CostAnomalyPage() {
   const [activeTab, setActiveTab] = useState("sudden-spikes")
+  const [selectedClassification, setSelectedClassification] = useState<string | null>(null)
+  const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null)
+  const [filterType, setFilterType] = useState<'classification' | 'severity' | null>(null)
+
+  const handleFilterSelect = (type: 'classification' | 'severity') => {
+    setFilterType(type)
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -26,12 +33,21 @@ export default function CostAnomalyPage() {
                 showOnlyFilterButton={true} 
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
+                onFilterSelect={handleFilterSelect}
               />
             </div>
 
             {/* Static Table */}
             <div className="mt-4">
-              <StaticTable activeTab={activeTab} />
+              <StaticTable 
+                activeTab={activeTab}
+                selectedClassification={selectedClassification}
+                selectedSeverity={selectedSeverity}
+                onClassificationChange={setSelectedClassification}
+                onSeverityChange={setSelectedSeverity}
+                filterType={filterType}
+                onFilterTypeChange={setFilterType}
+              />
             </div>
           </div>
         </main>

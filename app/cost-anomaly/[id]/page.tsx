@@ -41,13 +41,13 @@ function formatCurrency(amount: number): string {
 function getSeverityColor(severity: string): string {
   switch (severity.toLowerCase()) {
     case "high":
-      return "bg-red-100 text-red-800 border-red-200 hover:bg-red-100"
+      return "bg-red-50 text-red-700 border-red-200"
     case "medium":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100"
+      return "bg-amber-50 text-amber-700 border-amber-200"
     case "low":
-      return "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100"
+      return "bg-yellow-50 text-yellow-700 border-yellow-200"
     default:
-      return "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-100"
+      return "bg-gray-50 text-gray-700 border-gray-200"
   }
 }
 
@@ -154,10 +154,18 @@ export default function CostAnomalyDetailPage({
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
                 <h1 className="text-3xl font-bold">{item.resourceGroup}</h1>
-                <p className="text-xs text-muted-foreground mt-1">{item.subIdentifier}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {item.subIdentifier}
+                  {item.classification && (
+                    <> | {item.classification}</>
+                  )}
+                </p>
               </div>
-              <Badge className={getSeverityColor(item.severity)}>
-                {item.severity} Severity
+              <Badge
+                variant="outline"
+                className={`text-[10px] px-1.5 py-0.5 ${getSeverityColor(item.severity)}`}
+              >
+                {item.severity}
               </Badge>
             </div>
 
@@ -208,7 +216,7 @@ export default function CostAnomalyDetailPage({
             </div>
 
             {/* Summary metrics row */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className={`grid grid-cols-1 gap-4 ${item.worstCaseMonthlyCost !== undefined ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
               <Card className="p-4 bg-white border border-gray-200">
                 <div className="flex flex-col h-full">
                   <div className="min-h-[32px] flex items-start mb-2.5">
@@ -280,7 +288,7 @@ export default function CostAnomalyDetailPage({
 
             {/* Cost Trend Chart */}
             <div className="flex flex-col">
-              <div className="min-h-[32px] flex items-start mb-4">
+              <div className="min-h-[32px] flex items-start mb-1">
                 <p className="text-sm font-semibold text-gray-900">14-Day Cost Trend Analysis</p>
               </div>
               <div>
@@ -302,13 +310,13 @@ export default function CostAnomalyDetailPage({
             {/* Recommended actions */}
             <div className="flex flex-col">
               <div className="min-h-[32px] flex items-start mb-2">
-                <p className="text-sm font-semibold text-gray-900">Recommended Action</p>
+                <p className="text-sm font-semibold text-gray-900">Recommendations</p>
               </div>
               <div className="bg-blue-50 border border-gray-200 rounded-lg p-4">
                 <ul className="space-y-2">
                   {item.recommendedActions.map((action, index) => (
                     <li key={index} className="flex items-start gap-2">
-                      <span className="text-gray-600 mt-1">•</span>
+                      <span className="text-gray-600">•</span>
                       <span className="flex-1 text-sm text-gray-700 leading-relaxed">{action.title}</span>
                     </li>
                   ))}
@@ -418,7 +426,7 @@ export default function CostAnomalyDetailPage({
       <Dialog open={isLearnMoreOpen} onOpenChange={setIsLearnMoreOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="pb-4 border-b border-gray-200 -mx-6 px-6">
-            <DialogTitle>Cost Anomaly Detection Settings</DialogTitle>
+            <DialogTitle>Detection Settings</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6 mt-4">
@@ -427,9 +435,9 @@ export default function CostAnomalyDetailPage({
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-gray-900">Detection Sensitivity</h3>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-2xl font-bold text-gray-900">High (76/100)</p>
+                  <p className="text-lg font-semibold text-gray-900">High (76/100)</p>
                 </div>
-                <p className="text-sm text-gray-600">Controls how aggressively anomalies are detected based on recent usage patterns.</p>
+                <p className="text-xs text-gray-600">Controls how aggressively anomalies are detected based on recent usage patterns.</p>
               </div>
             </Card>
 
@@ -437,7 +445,7 @@ export default function CostAnomalyDetailPage({
             <Card className="p-4 bg-white border border-gray-200">
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-gray-900">Detection Methods</h3>
-                <p className="text-lg font-semibold text-gray-900">7 Active Detection Algorithms</p>
+                <p className="text-lg font-semibold text-gray-900">7 active</p>
                 <p className="text-sm text-gray-600">Multiple models are used together to reduce false positives.</p>
               </div>
             </Card>
