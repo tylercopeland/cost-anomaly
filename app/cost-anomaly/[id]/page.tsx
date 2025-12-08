@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { StaticSidebar } from "@/components/static-sidebar"
 import { StaticHeader } from "@/components/static-header"
-import { findCostAnomalyItem } from "@/lib/cost-anomaly-data"
+import { findCostAnomalyItem, suddenSpikesData, trendingConcernsData } from "@/lib/cost-anomaly-data"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { CostTrendChart, WorstCaseProjectionPoint } from "@/components/cost-trend-chart-chartjs"
@@ -30,9 +30,9 @@ import { Button } from "@/components/ui/button"
 import { Plus, X } from "lucide-react"
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-GB", {
     style: "currency",
-    currency: "USD",
+    currency: "GBP",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount)
@@ -49,6 +49,16 @@ function getSeverityColor(severity: string): string {
     default:
       return "bg-gray-50 text-gray-700 border-gray-200"
   }
+}
+
+function getAnomalyType(itemId: string): string {
+  if (suddenSpikesData.some(item => item.id === itemId)) {
+    return "Spike"
+  }
+  if (trendingConcernsData.some(item => item.id === itemId)) {
+    return "Concern"
+  }
+  return "Unknown"
 }
 
 export default function CostAnomalyDetailPage({
@@ -154,19 +164,24 @@ export default function CostAnomalyDetailPage({
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
                 <h1 className="text-3xl font-bold">{item.resourceGroup}</h1>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-base text-muted-foreground mt-1">
                   {item.subIdentifier}
-                  {item.classification && (
-                    <> | {item.classification}</>
-                  )}
                 </p>
               </div>
-              <Badge
-                variant="outline"
-                className={`text-[10px] px-1.5 py-0.5 ${getSeverityColor(item.severity)}`}
-              >
-                {item.severity}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] px-1.5 py-0.5 bg-gray-50 text-gray-700 border-gray-200"
+                >
+                  {getAnomalyType(item.id)}
+                </Badge>
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] px-1.5 py-0.5 ${getSeverityColor(item.severity)}`}
+                >
+                  {item.severity}
+                </Badge>
+              </div>
             </div>
 
             {/* Anomaly Summary */}
@@ -176,7 +191,7 @@ export default function CostAnomalyDetailPage({
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-gray-900 mb-2">Summary</p>
                     <p className="text-sm text-gray-700">
-                    An {item.classification} was detected on{" "}
+                    An <span className="font-semibold text-gray-900">{item.classification}</span> was detected on{" "}
                     <span className="font-semibold text-gray-900">
                       {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                     </span>
@@ -219,10 +234,10 @@ export default function CostAnomalyDetailPage({
             <div className={`grid grid-cols-1 gap-4 ${item.worstCaseMonthlyCost !== undefined ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
               <Card className="p-4 bg-white border border-gray-200">
                 <div className="flex flex-col h-full">
-                  <div className="min-h-[32px] flex items-start mb-2.5">
+                  <div className="min-h-[32px] flex items-start mb-0">
                     <p className="text-xs font-medium text-gray-600">Normal Daily Cost</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-0">{formatCurrency(item.baselineDaily)}</p>
+                  <p className="text-2xl font-bold text-gray-900 -mt-1 border-b border-gray-200 pb-2">{formatCurrency(item.baselineDaily)}</p>
                   <div className="mt-2">
                     <p className="text-xs text-gray-500">Baseline daily average</p>
                   </div>
@@ -230,28 +245,34 @@ export default function CostAnomalyDetailPage({
               </Card>
               <Card className="p-4 bg-white border border-gray-200">
                 <div className="flex flex-col h-full">
-                  <div className="min-h-[32px] flex items-start mb-2.5">
+                  <div className="min-h-[32px] flex items-start mb-0">
                     <p className="text-xs font-medium text-gray-600">Current Daily Cost</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-0">{formatCurrency(item.currentDaily)}</p>
+                  <p className="text-2xl font-bold text-gray-900 -mt-1 border-b border-gray-200 pb-2">{formatCurrency(item.currentDaily)}</p>
                   <div className="mt-2">
-                    <p className={`text-xs font-medium ${item.costChangeDollar >= 0 ? "text-red-600" : "text-green-600"}`}>
-                      {item.costChangeDollar > 0 ? "+" : ""}{formatCurrency(Math.abs(item.costChangeDollar))} above baseline
+                    <p className="text-xs font-medium">
+                      <span className={item.costChangeDollar >= 0 ? "text-red-600" : "text-green-600"}>
+                        {item.costChangeDollar > 0 ? "+" : ""}{formatCurrency(Math.abs(item.costChangeDollar))}
+                      </span>
+                      <span className="text-gray-600"> above baseline</span>
                     </p>
                   </div>
                 </div>
               </Card>
               <Card className="p-4 bg-white border border-gray-200">
                 <div className="flex flex-col h-full">
-                  <div className="min-h-[32px] flex items-start mb-2.5">
+                  <div className="min-h-[32px] flex items-start mb-0">
                     <p className="text-xs font-medium text-gray-600">Projected Monthly Cost</p>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-0">
+                  <p className="text-2xl font-bold text-gray-900 -mt-1 border-b border-gray-200 pb-2">
                     {formatCurrency(item.baselineDaily * 30 + item.projectedMonthlyImpact)}
                   </p>
                   <div className="mt-2">
-                    <p className={`text-xs font-medium ${item.projectedMonthlyImpact >= 0 ? "text-red-600" : "text-green-600"}`}>
-                      {item.projectedMonthlyImpact > 0 ? "+" : ""}{formatCurrency(Math.abs(item.projectedMonthlyImpact))} above monthly baseline
+                    <p className="text-xs font-medium">
+                      <span className={item.projectedMonthlyImpact >= 0 ? "text-red-600" : "text-green-600"}>
+                        {item.projectedMonthlyImpact > 0 ? "+" : ""}{formatCurrency(Math.abs(item.projectedMonthlyImpact))}
+                      </span>
+                      <span className="text-gray-600"> above monthly baseline</span>
                     </p>
                   </div>
                 </div>
@@ -259,7 +280,7 @@ export default function CostAnomalyDetailPage({
               {item.worstCaseMonthlyCost !== undefined && (
                 <Card className="p-4 bg-white border border-gray-200">
                   <div className="flex flex-col h-full">
-                    <div className="min-h-[32px] flex items-start gap-1.5 mb-2.5">
+                    <div className="min-h-[32px] flex items-start gap-1.5 mb-0">
                       <p className="text-xs font-medium text-gray-600">Projected Risk</p>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -270,15 +291,15 @@ export default function CostAnomalyDetailPage({
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900 mt-0">
+                    <p className="text-2xl font-bold text-gray-900 -mt-1 border-b border-gray-200 pb-2">
                       {formatCurrency(item.worstCaseMonthlyCost)}
                     </p>
-                    <div className="mt-2 space-y-1">
-                      <p className="text-xs font-medium text-red-600">
-                        +{formatCurrency(item.worstCaseMonthlyCost - (item.baselineDaily * 30 + item.projectedMonthlyImpact))} above projected cost
-                      </p>
-                      <p className="text-xs text-gray-600">
-                        If the current spike worsens
+                    <div className="mt-2">
+                      <p className="text-xs font-medium">
+                        <span className="text-red-600">
+                          +{formatCurrency(item.worstCaseMonthlyCost - (item.baselineDaily * 30 + item.projectedMonthlyImpact))}
+                        </span>
+                        <span className="text-gray-600"> over projected cost if the spike worsens</span>
                       </p>
                     </div>
                   </div>
@@ -463,11 +484,11 @@ export default function CostAnomalyDetailPage({
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-700">Minimum Dollar Change:</span>
-                  <span className="text-sm font-semibold text-gray-900">$10</span>
+                  <span className="text-sm font-semibold text-gray-900">£10</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-700">Minimum Cost Variation:</span>
-                  <span className="text-sm font-semibold text-gray-900">$5</span>
+                  <span className="text-sm font-semibold text-gray-900">£5</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-700">Low-spend resource groups are ignored</span>

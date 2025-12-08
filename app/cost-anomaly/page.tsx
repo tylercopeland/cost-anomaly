@@ -8,14 +8,19 @@ import { StaticTabsFilters } from "@/components/static-tabs-filters"
 import { suddenSpikesData, trendingConcernsData } from "@/lib/cost-anomaly-data"
 
 export default function CostAnomalyPage() {
-  const [activeTab, setActiveTab] = useState("sudden-spikes")
+  const [activeTab, setActiveTab] = useState("all")
   const [selectedClassification, setSelectedClassification] = useState<string | null>(null)
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null)
-  const [activeFilters, setActiveFilters] = useState<('classification' | 'severity')[]>([])
+  const [selectedSubscription, setSelectedSubscription] = useState<string | null>(null)
+  const [activeFilters, setActiveFilters] = useState<('subscription' | 'classification' | 'severity')[]>([])
 
-  const baseData = activeTab === "trending-concerns" ? trendingConcernsData : suddenSpikesData
+  const baseData = activeTab === "all" 
+    ? [...suddenSpikesData, ...trendingConcernsData]
+    : activeTab === "trending-concerns" 
+    ? trendingConcernsData 
+    : suddenSpikesData
 
-  // Get unique classifications and severities
+  // Get unique classifications, severities, and subscriptions
   const availableClassifications = useMemo(() => {
     const classifications = new Set(baseData.map(item => item.classification))
     return Array.from(classifications).sort()
@@ -29,15 +34,22 @@ export default function CostAnomalyPage() {
     })
   }, [baseData])
 
-  const handleAddFilter = (type: 'classification' | 'severity') => {
+  const availableSubscriptions = useMemo(() => {
+    const subscriptions = new Set(baseData.map(item => item.subIdentifier))
+    return Array.from(subscriptions).sort()
+  }, [baseData])
+
+  const handleAddFilter = (type: 'subscription' | 'classification' | 'severity') => {
     if (!activeFilters.includes(type)) {
       setActiveFilters([...activeFilters, type])
     }
   }
 
-  const handleRemoveFilter = (type: 'classification' | 'severity') => {
+  const handleRemoveFilter = (type: 'subscription' | 'classification' | 'severity') => {
     setActiveFilters(activeFilters.filter(f => f !== type))
-    if (type === 'classification') {
+    if (type === 'subscription') {
+      setSelectedSubscription(null)
+    } else if (type === 'classification') {
       setSelectedClassification(null)
     } else {
       setSelectedSeverity(null)
@@ -66,10 +78,13 @@ export default function CostAnomalyPage() {
                 onRemoveFilter={handleRemoveFilter}
                 selectedClassification={selectedClassification}
                 selectedSeverity={selectedSeverity}
+                selectedSubscription={selectedSubscription}
                 onClassificationChange={setSelectedClassification}
                 onSeverityChange={setSelectedSeverity}
+                onSubscriptionChange={setSelectedSubscription}
                 availableClassifications={availableClassifications}
                 availableSeverities={availableSeverities}
+                availableSubscriptions={availableSubscriptions}
               />
             </div>
 
@@ -79,8 +94,10 @@ export default function CostAnomalyPage() {
                 activeTab={activeTab}
                 selectedClassification={selectedClassification}
                 selectedSeverity={selectedSeverity}
+                selectedSubscription={selectedSubscription}
                 onClassificationChange={setSelectedClassification}
                 onSeverityChange={setSelectedSeverity}
+                onSubscriptionChange={setSelectedSubscription}
               />
             </div>
           </div>

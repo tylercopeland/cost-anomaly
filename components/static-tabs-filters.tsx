@@ -16,15 +16,18 @@ interface StaticTabsFiltersProps {
   showOnlyFilterButton?: boolean
   activeTab?: string
   onTabChange?: (tabId: string) => void
-  activeFilters?: ('classification' | 'severity')[]
-  onAddFilter?: (filterType: 'classification' | 'severity') => void
-  onRemoveFilter?: (filterType: 'classification' | 'severity') => void
+  activeFilters?: ('subscription' | 'classification' | 'severity')[]
+  onAddFilter?: (filterType: 'subscription' | 'classification' | 'severity') => void
+  onRemoveFilter?: (filterType: 'subscription' | 'classification' | 'severity') => void
   selectedClassification?: string | null
   selectedSeverity?: string | null
+  selectedSubscription?: string | null
   onClassificationChange?: (value: string | null) => void
   onSeverityChange?: (value: string | null) => void
+  onSubscriptionChange?: (value: string | null) => void
   availableClassifications?: string[]
   availableSeverities?: string[]
+  availableSubscriptions?: string[]
 }
 
 export function StaticTabsFilters({ 
@@ -36,12 +39,15 @@ export function StaticTabsFilters({
   onRemoveFilter,
   selectedClassification,
   selectedSeverity,
+  selectedSubscription,
   onClassificationChange,
   onSeverityChange,
+  onSubscriptionChange,
   availableClassifications = [],
-  availableSeverities = []
+  availableSeverities = [],
+  availableSubscriptions = []
 }: StaticTabsFiltersProps) {
-  const [internalActiveTab, setInternalActiveTab] = useState("sudden-spikes")
+  const [internalActiveTab, setInternalActiveTab] = useState("all")
   const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : internalActiveTab
   
   const handleTabChange = (tabId: string) => {
@@ -74,6 +80,7 @@ export function StaticTabsFilters({
   }, [activeFilters])
 
   const tabs = [
+    { id: "all", name: "All" },
     { id: "sudden-spikes", name: "Spikes" },
     { id: "trending-concerns", name: "Concerns" },
   ]
@@ -223,10 +230,26 @@ export function StaticTabsFilters({
 
         {/* Active Filter Buttons */}
         {activeFilters.map((filterType) => {
-          const filterLabel = filterType === 'classification' ? 'Classification' : 'Severity'
-          const selectedValue = filterType === 'classification' ? selectedClassification : selectedSeverity
-          const options = filterType === 'classification' ? availableClassifications : availableSeverities
-          const onChange = filterType === 'classification' ? onClassificationChange : onSeverityChange
+          const filterLabel = filterType === 'subscription' 
+            ? 'Subscription' 
+            : filterType === 'classification' 
+            ? 'Detected Change Type' 
+            : 'Severity'
+          const selectedValue = filterType === 'subscription' 
+            ? selectedSubscription 
+            : filterType === 'classification' 
+            ? selectedClassification 
+            : selectedSeverity
+          const options = filterType === 'subscription' 
+            ? availableSubscriptions 
+            : filterType === 'classification' 
+            ? availableClassifications 
+            : availableSeverities
+          const onChange = filterType === 'subscription' 
+            ? onSubscriptionChange 
+            : filterType === 'classification' 
+            ? onClassificationChange 
+            : onSeverityChange
           const isOpen = openFilterPopover === filterType
 
           return (
@@ -301,6 +324,19 @@ export function StaticTabsFilters({
               <div className="px-2 py-1.5">
                 <Input type="text" placeholder="Filter by..." className="h-8 text-sm" />
               </div>
+              {!activeFilters.includes('subscription') && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    onAddFilter?.('subscription')
+                    setAddFilterOpen(false)
+                  }}
+                  className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
+                >
+                  Subscription
+                </button>
+              )}
               {!activeFilters.includes('classification') && (
                 <button
                   onClick={(e) => {
@@ -311,7 +347,7 @@ export function StaticTabsFilters({
                   }}
                   className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
                 >
-                  Classification
+                  Detected Change Type
                 </button>
               )}
               {!activeFilters.includes('severity') && (

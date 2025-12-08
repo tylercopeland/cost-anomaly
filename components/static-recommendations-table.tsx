@@ -142,12 +142,6 @@ export function StaticRecommendationsTable() {
     <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
       {/* Table Header */}
       <div className="flex items-center px-4 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-muted-foreground tracking-wide">
-        <div className="w-4 flex-shrink-0 mr-5">
-          <Checkbox
-            className="h-4 w-4"
-            disabled
-          />
-        </div>
         <div className="flex-[2] min-w-[200px] mr-5 pr-3 border-r border-gray-200">
           <div className="flex items-center justify-between group">
             <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
@@ -507,12 +501,6 @@ export function StaticRecommendationsTable() {
             key={item.id}
             className="flex items-center px-4 py-4 hover:bg-gray-50 transition-colors"
           >
-            <div className="w-4 flex-shrink-0 mr-5">
-              <Checkbox
-                className="h-4 w-4"
-                disabled
-              />
-            </div>
 
             <div className="flex-[2] min-w-[200px] mr-5">
               <div className="font-medium text-foreground text-sm mb-0.5 truncate">{item.recommendation}</div>
