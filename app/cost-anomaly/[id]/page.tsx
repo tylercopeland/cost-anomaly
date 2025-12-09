@@ -1,13 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { StaticSidebar } from "@/components/static-sidebar"
 import { StaticHeader } from "@/components/static-header"
 import { findCostAnomalyItem, suddenSpikesData, trendingConcernsData } from "@/lib/cost-anomaly-data"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { CostTrendChart, WorstCaseProjectionPoint } from "@/components/cost-trend-chart-chartjs"
-import { Settings, Info } from "lucide-react"
+import { Settings, Info, ArrowLeft } from "lucide-react"
 import {
   Tooltip,
   TooltipContent,
@@ -67,6 +68,7 @@ export default function CostAnomalyDetailPage({
   params: { id: string }
 }) {
   const { id } = params
+  const router = useRouter()
   const item = findCostAnomalyItem(id)
   const [isLearnMoreOpen, setIsLearnMoreOpen] = useState(false)
   const [smartTags, setSmartTags] = useState(item?.smartTags || [])
@@ -163,6 +165,13 @@ export default function CostAnomalyDetailPage({
             {/* Title + Severity badge */}
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
+                <button
+                  onClick={() => router.back()}
+                  className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2 -mt-1"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </button>
                 <h1 className="text-3xl font-bold">{item.resourceGroup}</h1>
                 <p className="text-base text-muted-foreground mt-1">
                   {item.subIdentifier}

@@ -181,6 +181,13 @@ export const suddenSpikesData: CostAnomalyItem[] = [
     recommendedActions: [
       { title: "Schedule auto-shutdown for dev environments during non-business hours and weekends. This can reduce costs by up to 60% without impacting productivity.", action: "Configure", type: "primary" },
       { title: "Review resource allocation and right-size development instances. Many dev environments are over-provisioned and can run on smaller instance types.", action: "Review", type: "secondary" }
+    ],
+    smartTags: [
+      { key: "Cloud", value: "Azure" },
+      { key: "Service", value: "Virtual Machines" },
+      { key: "Impact", value: "Medium Savings" },
+      { key: "Region", value: "West US" },
+      { key: "Environment", value: "Development" }
     ]
   },
   {
@@ -242,6 +249,13 @@ export const suddenSpikesData: CostAnomalyItem[] = [
     recommendedActions: [
       { title: "Verify that the test environment shutdown was intentional and all resources have been properly decommissioned. Ensure no orphaned resources remain.", action: "Verify", type: "primary" },
       { title: "Document the cost savings achieved from decommissioning the test environment. This helps track optimization efforts and can inform future decisions.", action: "Document", type: "secondary" }
+    ],
+    smartTags: [
+      { key: "Cloud", value: "Azure" },
+      { key: "Service", value: "Test Environment" },
+      { key: "Impact", value: "Cost Reduction" },
+      { key: "Region", value: "Central US" },
+      { key: "Environment", value: "Testing" }
     ]
   },
   {
@@ -304,6 +318,13 @@ export const suddenSpikesData: CostAnomalyItem[] = [
     recommendedActions: [
       { title: "Review job scheduling to consolidate overlapping analytics jobs and optimize run times. Consider batch processing during off-peak hours to reduce costs.", action: "Review", type: "primary" },
       { title: "Optimize data processing pipelines by implementing incremental processing instead of full table scans. This reduces compute requirements and costs.", action: "Optimize", type: "secondary" }
+    ],
+    smartTags: [
+      { key: "Cloud", value: "Azure" },
+      { key: "Service", value: "Analytics" },
+      { key: "Impact", value: "Low Savings" },
+      { key: "Region", value: "East US" },
+      { key: "Environment", value: "Production" }
     ]
   },
   {
@@ -440,6 +461,13 @@ export const suddenSpikesData: CostAnomalyItem[] = [
     recommendedActions: [
       { title: "Verify that monitoring coverage remains adequate after consolidation. Ensure critical metrics and alerts are still being captured without gaps.", action: "Verify", type: "primary" },
       { title: "Document the optimization changes made to the monitoring stack. This helps maintain institutional knowledge and can guide future optimizations.", action: "Document", type: "secondary" }
+    ],
+    smartTags: [
+      { key: "Cloud", value: "Azure" },
+      { key: "Service", value: "Monitoring" },
+      { key: "Impact", value: "Cost Reduction" },
+      { key: "Region", value: "North Europe" },
+      { key: "Environment", value: "Development" }
     ]
   },
 ]
@@ -512,6 +540,13 @@ export const trendingConcernsData: CostAnomalyItem[] = [
       { title: "Set resource limits on new microservices to prevent uncontrolled scaling. Define CPU and memory limits based on expected load patterns to control costs.", action: "Configure", type: "primary" },
       { title: "Review auto-scaling policies to ensure they're not too aggressive. Consider implementing scaling delays and cooldown periods to prevent rapid cost increases.", action: "Review", type: "secondary" },
       { title: "Implement cost budgets with alerts at 80% and 100% thresholds. This provides early warning before costs spiral out of control.", action: "Configure", type: "secondary" }
+    ],
+    smartTags: [
+      { key: "Cloud", value: "Azure" },
+      { key: "Service", value: "Compute" },
+      { key: "Impact", value: "High Savings" },
+      { key: "Region", value: "East US" },
+      { key: "Environment", value: "Production" }
     ]
   },
   {
@@ -532,10 +567,56 @@ export const trendingConcernsData: CostAnomalyItem[] = [
       "No lifecycle policies configured for old data"
     ],
     sparklineData: [5241, 5300, 5400, 5520, 5650, 5780, 5900, 6000, 6080, 6132],
+    costTrendData: [
+      // Last 14 days - showing gradual storage growth trend
+      { date: getDateString(-14), dailyCost: 5241 },
+      { date: getDateString(-13), dailyCost: 5250 },
+      { date: getDateString(-12), dailyCost: 5260 },
+      { date: getDateString(-11), dailyCost: 5270 },
+      { date: getDateString(-10), dailyCost: 5280 },
+      { date: getDateString(-9), dailyCost: 5300 },
+      { date: getDateString(-8), dailyCost: 5320 },
+      { date: getDateString(-7), dailyCost: 5340 },
+      { date: getDateString(-6), dailyCost: 5400 },
+      { date: getDateString(-5), dailyCost: 5450 },
+      { date: getDateString(-4), dailyCost: 5520 },
+      { date: getDateString(-3), dailyCost: 5600 },
+      { date: getDateString(-2), dailyCost: 5780 },
+      { date: getDateString(-1), dailyCost: 5900 },
+      // Today - continuing the trend
+      { date: getDateString(0), dailyCost: 6000 },
+      // Projection - continuing upward trend
+      { date: getDateString(1), dailyCost: null, projection: 6080 },
+      { date: getDateString(2), dailyCost: null, projection: 6132 },
+      { date: getDateString(3), dailyCost: null, projection: 6200 },
+      { date: getDateString(4), dailyCost: null, projection: 6280 },
+      { date: getDateString(5), dailyCost: null, projection: 6350 },
+      { date: getDateString(6), dailyCost: null, projection: 6420 },
+      { date: getDateString(7), dailyCost: null, projection: 6500 },
+      { date: getDateString(8), dailyCost: null, projection: 6580 },
+      { date: getDateString(9), dailyCost: null, projection: 6650 },
+      { date: getDateString(10), dailyCost: null, projection: 6720 },
+      { date: getDateString(11), dailyCost: null, projection: 6800 },
+      { date: getDateString(12), dailyCost: null, projection: 6880 },
+      { date: getDateString(13), dailyCost: null, projection: 6950 },
+    ].map((point) => ({
+      date: point.date,
+      dailyCost: point.dailyCost,
+      isAnomaly: false,
+      average: 5500, // Average of baseline costs
+      projection: point.projection,
+    })),
     recommendedActions: [
       { title: "Configure storage lifecycle policies to automatically move data older than 30 days to cheaper storage tiers. This can reduce storage costs by up to 50% for infrequently accessed data.", action: "Configure", type: "primary" },
       { title: "Review data retention requirements with stakeholders to ensure you're not storing data longer than necessary. Reducing retention by 30 days could save significant costs.", action: "Review", type: "secondary" },
       { title: "Archive old data to cold storage tiers, which cost 90% less than standard storage. This is ideal for data that's rarely accessed but must be retained for compliance.", action: "Archive", type: "secondary" }
+    ],
+    smartTags: [
+      { key: "Cloud", value: "Azure" },
+      { key: "Service", value: "Storage" },
+      { key: "Impact", value: "Medium Savings" },
+      { key: "Region", value: "West US" },
+      { key: "Environment", value: "Production" }
     ]
   },
   {
@@ -555,9 +636,55 @@ export const trendingConcernsData: CostAnomalyItem[] = [
       "Increased bandwidth allocation for new regions"
     ],
     sparklineData: [3456, 3500, 3550, 3600, 3650, 3700, 3750, 3800, 3850, 3888],
+    costTrendData: [
+      // Last 14 days - showing gradual network cost increase
+      { date: getDateString(-14), dailyCost: 3456 },
+      { date: getDateString(-13), dailyCost: 3460 },
+      { date: getDateString(-12), dailyCost: 3465 },
+      { date: getDateString(-11), dailyCost: 3470 },
+      { date: getDateString(-10), dailyCost: 3500 },
+      { date: getDateString(-9), dailyCost: 3520 },
+      { date: getDateString(-8), dailyCost: 3540 },
+      { date: getDateString(-7), dailyCost: 3550 },
+      { date: getDateString(-6), dailyCost: 3600 },
+      { date: getDateString(-5), dailyCost: 3620 },
+      { date: getDateString(-4), dailyCost: 3650 },
+      { date: getDateString(-3), dailyCost: 3700 },
+      { date: getDateString(-2), dailyCost: 3750 },
+      { date: getDateString(-1), dailyCost: 3800 },
+      // Today - continuing the trend
+      { date: getDateString(0), dailyCost: 3850 },
+      // Projection - continuing upward trend
+      { date: getDateString(1), dailyCost: null, projection: 3888 },
+      { date: getDateString(2), dailyCost: null, projection: 3900 },
+      { date: getDateString(3), dailyCost: null, projection: 3920 },
+      { date: getDateString(4), dailyCost: null, projection: 3940 },
+      { date: getDateString(5), dailyCost: null, projection: 3960 },
+      { date: getDateString(6), dailyCost: null, projection: 3980 },
+      { date: getDateString(7), dailyCost: null, projection: 4000 },
+      { date: getDateString(8), dailyCost: null, projection: 4020 },
+      { date: getDateString(9), dailyCost: null, projection: 4040 },
+      { date: getDateString(10), dailyCost: null, projection: 4060 },
+      { date: getDateString(11), dailyCost: null, projection: 4080 },
+      { date: getDateString(12), dailyCost: null, projection: 4100 },
+      { date: getDateString(13), dailyCost: null, projection: 4120 },
+    ].map((point) => ({
+      date: point.date,
+      dailyCost: point.dailyCost,
+      isAnomaly: false,
+      average: 3600, // Average of baseline costs
+      projection: point.projection,
+    })),
     recommendedActions: [
       { title: "Monitor network performance metrics to ensure the infrastructure upgrade is delivering expected improvements. Track latency, throughput, and error rates.", action: "Monitor", type: "primary" },
       { title: "Review bandwidth utilization patterns to identify optimization opportunities. Consider implementing data compression or caching to reduce bandwidth requirements.", action: "Review", type: "secondary" }
+    ],
+    smartTags: [
+      { key: "Cloud", value: "Azure" },
+      { key: "Service", value: "Network" },
+      { key: "Impact", value: "Medium Savings" },
+      { key: "Region", value: "Global" },
+      { key: "Environment", value: "Infrastructure" }
     ]
   },
   {
@@ -577,9 +704,55 @@ export const trendingConcernsData: CostAnomalyItem[] = [
       "Larger datasets being processed"
     ],
     sparklineData: [2890, 2920, 2950, 2980, 3020, 3060, 3100, 3130, 3160, 3179],
+    costTrendData: [
+      // Last 14 days - showing gradual ML training cost increase
+      { date: getDateString(-14), dailyCost: 2890 },
+      { date: getDateString(-13), dailyCost: 2895 },
+      { date: getDateString(-12), dailyCost: 2900 },
+      { date: getDateString(-11), dailyCost: 2905 },
+      { date: getDateString(-10), dailyCost: 2920 },
+      { date: getDateString(-9), dailyCost: 2930 },
+      { date: getDateString(-8), dailyCost: 2940 },
+      { date: getDateString(-7), dailyCost: 2950 },
+      { date: getDateString(-6), dailyCost: 2980 },
+      { date: getDateString(-5), dailyCost: 3000 },
+      { date: getDateString(-4), dailyCost: 3020 },
+      { date: getDateString(-3), dailyCost: 3060 },
+      { date: getDateString(-2), dailyCost: 3100 },
+      { date: getDateString(-1), dailyCost: 3130 },
+      // Today - continuing the trend
+      { date: getDateString(0), dailyCost: 3160 },
+      // Projection - continuing upward trend
+      { date: getDateString(1), dailyCost: null, projection: 3179 },
+      { date: getDateString(2), dailyCost: null, projection: 3200 },
+      { date: getDateString(3), dailyCost: null, projection: 3220 },
+      { date: getDateString(4), dailyCost: null, projection: 3240 },
+      { date: getDateString(5), dailyCost: null, projection: 3260 },
+      { date: getDateString(6), dailyCost: null, projection: 3280 },
+      { date: getDateString(7), dailyCost: null, projection: 3300 },
+      { date: getDateString(8), dailyCost: null, projection: 3320 },
+      { date: getDateString(9), dailyCost: null, projection: 3340 },
+      { date: getDateString(10), dailyCost: null, projection: 3360 },
+      { date: getDateString(11), dailyCost: null, projection: 3380 },
+      { date: getDateString(12), dailyCost: null, projection: 3400 },
+      { date: getDateString(13), dailyCost: null, projection: 3420 },
+    ].map((point) => ({
+      date: point.date,
+      dailyCost: point.dailyCost,
+      isAnomaly: false,
+      average: 3000, // Average of baseline costs
+      projection: point.projection,
+    })),
     recommendedActions: [
       { title: "Optimize training job frequency by implementing incremental training instead of full retraining. Consider scheduling training during off-peak hours to take advantage of lower compute costs.", action: "Optimize", type: "primary" },
       { title: "Review dataset sizes and implement data sampling or feature selection techniques. Training on smaller, representative datasets can reduce costs while maintaining model quality.", action: "Review", type: "secondary" }
+    ],
+    smartTags: [
+      { key: "Cloud", value: "Azure" },
+      { key: "Service", value: "ML Training" },
+      { key: "Impact", value: "Low Savings" },
+      { key: "Region", value: "East US" },
+      { key: "Environment", value: "Data Science" }
     ]
   },
 ]

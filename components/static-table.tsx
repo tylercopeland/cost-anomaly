@@ -25,7 +25,7 @@ interface StaticTableProps {
   onSubscriptionChange?: (value: string | null) => void
 }
 
-type SortColumn = "severity" | "dailyCost" | null
+type SortColumn = "severity" | "costImpact" | "dailyCost" | null
 type SortDirection = "asc" | "desc"
 
 export function StaticTable({ 
@@ -49,6 +49,7 @@ export function StaticTable({
     subscription: true,
     classification: true,
     severity: true,
+    costImpact: true,
     dailyCost: true,
     costTrend: true,
   })
@@ -63,9 +64,32 @@ export function StaticTable({
   }
 
   const handleSort = (column: string, direction: "asc" | "desc") => {
-    if (column === "severity" || column === "dailyCost") {
+    if (column === "severity" || column === "costImpact" || column === "dailyCost") {
       setSortColumn(column as SortColumn)
       setSortDirection(direction)
+    }
+  }
+
+  // Helper function to determine if an item is a spike or concern
+  const getItemType = (itemId: string): string => {
+    if (suddenSpikesData.some(item => item.id === itemId)) {
+      return "Spike"
+    }
+    if (trendingConcernsData.some(item => item.id === itemId)) {
+      return "Concern"
+    }
+    return "Unknown"
+  }
+
+  // Helper function to calculate cost impact
+  const getCostImpact = (item: typeof baseData[0]): number => {
+    const itemType = getItemType(item.id)
+    if (itemType === "Spike") {
+      // For spikes: Cost Impact = delta (currentDaily - baselineDaily)
+      return item.currentDaily - item.baselineDaily
+    } else {
+      // For concerns: Cost Impact = projected monthly increase
+      return item.projectedMonthlyImpact
     }
   }
 
@@ -152,20 +176,10 @@ export function StaticTable({
     { id: "subscription", label: "Subscription" },
     { id: "classification", label: "Detected Change Type" },
     { id: "severity", label: "Severity" },
+    { id: "costImpact", label: "Cost Impact" },
     { id: "dailyCost", label: "Daily Cost" },
     { id: "costTrend", label: "Cost Trend" },
   ]
-
-  // Helper function to determine if an item is a spike or concern
-  const getItemType = (itemId: string): string => {
-    if (suddenSpikesData.some(item => item.id === itemId)) {
-      return "Spike"
-    }
-    if (trendingConcernsData.some(item => item.id === itemId)) {
-      return "Concern"
-    }
-    return "Unknown"
-  }
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
@@ -209,6 +223,19 @@ export function StaticTable({
             </div>
           </div>
         )}
+        {visibleColumns.costImpact && (
+          <div className="flex-[1] min-w-[120px] mr-5 pr-3 border-r border-gray-200 text-right">
+            <button
+              onClick={() => handleSort("costImpact", sortColumn === "costImpact" && sortDirection === "asc" ? "desc" : "asc")}
+              className="flex items-center justify-end gap-1 text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap hover:text-foreground transition-colors ml-auto"
+            >
+              Cost Impact
+              {sortColumn === "costImpact" && (
+                <ArrowUp className={`h-3 w-3 ${sortDirection === "desc" ? "rotate-180" : ""}`} />
+              )}
+            </button>
+          </div>
+        )}
         {visibleColumns.dailyCost && (
           <div className="flex-[1] min-w-[120px] mr-5 pr-3 border-r border-gray-200 text-right">
             <div className="flex items-center justify-end gap-1 text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
@@ -240,7 +267,7 @@ export function StaticTable({
           >
             {visibleColumns.resourceGroup && (
               <div className="flex-[1.2] min-w-[150px] mr-5">
-                <div className="text-foreground text-sm truncate">{item.resourceGroup}</div>
+                <div className="text-foreground text-xs font-medium truncate">{item.resourceGroup}</div>
               </div>
             )}
             {visibleColumns.type && (
@@ -274,10 +301,34 @@ export function StaticTable({
                 </Badge>
               </div>
             )}
+            {visibleColumns.costImpact && (
+              <div className="flex-[1] min-w-[120px] mr-5 text-right">
+                <span className="text-xs text-foreground">
+                  {(() => {
+                    const impact = getCostImpact(item)
+                    const sign = impact >= 0 ? "+" : "-"
+                    const isConcern = getItemType(item.id) === "Concern"
+                    return (
+                      <>
+                        {sign}{formatCurrency(Math.abs(impact))}
+                        {isConcern && (
+                          <span className="text-xs text-muted-foreground ml-1">(proj)</span>
+                        )}
+                      </>
+                    )
+                  })()}
+                </span>
+              </div>
+            )}
             {visibleColumns.dailyCost && (
               <div className="flex-[1] min-w-[120px] mr-5 text-right">
                 <span className="text-xs text-foreground">
-                  {formatCurrency(Math.abs(item.costChangeDollar))}
+                  {(() => {
+                    const itemType = getItemType(item.id)
+                    // For spikes: Daily Cost = currentDaily (what you're paying per day right now)
+                    // For concerns: Daily Cost = currentDaily (same logic)
+                    return formatCurrency(item.currentDaily)
+                  })()}
                 </span>
               </div>
             )}
