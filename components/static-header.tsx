@@ -15,7 +15,7 @@ export function StaticHeader({ resourceGroupName }: StaticHeaderProps) {
   const getBreadcrumb = () => {
     if (pathname === "/cost-anomaly") {
       return (
-        <span className="text-foreground font-medium">Cost Anomaly</span>
+        <span className="text-sm text-foreground font-medium">Cost Anomaly</span>
       )
     }
     if (pathname?.startsWith("/cost-anomaly/")) {
@@ -23,29 +23,29 @@ export function StaticHeader({ resourceGroupName }: StaticHeaderProps) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => router.push("/cost-anomaly")}
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="text-sm text-muted-foreground font-medium hover:text-foreground transition-colors"
           >
             Cost Anomaly
           </button>
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          <span className="text-foreground font-medium">{resourceGroupName || "Details"}</span>
+          <span className="text-sm text-foreground font-medium">{resourceGroupName || "Details"}</span>
         </div>
       )
     }
     if (pathname === "/kitchen-sink") {
       return (
-        <span className="text-foreground font-medium">Kitchen Sink</span>
+        <span className="text-sm text-foreground font-medium">Kitchen Sink</span>
       )
     }
     return (
-      <span className="text-foreground font-medium">Cost Anomaly</span>
+      <span className="text-sm text-foreground font-medium">Cost Anomaly</span>
     )
   }
 
   return (
     <header className="border-b border-gray-200 bg-white">
       <div className="flex items-center justify-between px-4 py-4">
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center gap-2">
           {getBreadcrumb()}
         </div>
       </div>

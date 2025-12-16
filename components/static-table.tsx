@@ -174,7 +174,7 @@ export function StaticTable({
     { id: "resourceGroup", label: "Resource Group" },
     { id: "type", label: "Type" },
     { id: "subscription", label: "Subscription" },
-    { id: "classification", label: "Detected Change Type" },
+    { id: "classification", label: "Status" },
     { id: "severity", label: "Severity" },
     { id: "costImpact", label: "Cost Impact" },
     { id: "dailyCost", label: "Daily Cost" },
@@ -209,7 +209,7 @@ export function StaticTable({
         {visibleColumns.classification && (
           <div className="flex-[1.5] min-w-[180px] mr-5 pr-3 border-r border-gray-200">
             <div className="text-xs font-semibold text-muted-foreground tracking-wide whitespace-nowrap">
-              Detected Change Type
+              Status
             </div>
           </div>
         )}

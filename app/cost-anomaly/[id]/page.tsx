@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Plus, X } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-GB", {
@@ -74,6 +75,15 @@ export default function CostAnomalyDetailPage({
   const [smartTags, setSmartTags] = useState(item?.smartTags || [])
   const [tagType, setTagType] = useState("")
   const [tagValue, setTagValue] = useState("")
+  const [status, setStatus] = useState(item?.classification || "")
+  
+  // Available status options
+  const statusOptions = [
+    "Unexpected Cost Change",
+    "Expected",
+    "Not important",
+    "False positive"
+  ]
 
   // Generate projection data from monthly impact - convert to daily values
   const projectedTrendData: WorstCaseProjectionPoint[] | undefined = item?.projectedMonthlyImpact !== undefined && item?.costTrendData
@@ -177,16 +187,28 @@ export default function CostAnomalyDetailPage({
                   {item.subIdentifier}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger size="sm" className="h-7 w-auto min-w-fit text-xs px-2 py-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Badge
                   variant="outline"
-                  className="text-[10px] px-1.5 py-0.5 bg-gray-50 text-gray-700 border-gray-200"
+                  className="h-7 text-xs px-2 py-1 bg-gray-50 text-gray-700 border-gray-200 flex items-center"
                 >
                   {getAnomalyType(item.id)}
                 </Badge>
                 <Badge
                   variant="outline"
-                  className={`text-[10px] px-1.5 py-0.5 ${getSeverityColor(item.severity)}`}
+                  className={`h-7 text-xs px-2 py-1 flex items-center ${getSeverityColor(item.severity)}`}
                 >
                   {item.severity}
                 </Badge>
@@ -200,7 +222,7 @@ export default function CostAnomalyDetailPage({
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-gray-900 mb-2">Summary</p>
                     <p className="text-sm text-gray-700">
-                    An <span className="font-semibold text-gray-900">{item.classification}</span> was detected on{" "}
+                    An <span className="font-semibold text-gray-900">{status}</span> was detected on{" "}
                     <span className="font-semibold text-gray-900">
                       {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                     </span>
@@ -340,7 +362,7 @@ export default function CostAnomalyDetailPage({
             {/* Recommended actions */}
             <div className="flex flex-col">
               <div className="min-h-[32px] flex items-start mb-2">
-                <p className="text-sm font-semibold text-gray-900">Recommendations</p>
+                <p className="text-sm font-semibold text-gray-900">Recommended Action</p>
               </div>
               <div className="bg-blue-50 border border-gray-200 rounded-lg p-4">
                 <ul className="space-y-2">
@@ -357,11 +379,11 @@ export default function CostAnomalyDetailPage({
             {/* Smart Tags */}
             <div className="flex flex-col">
               <div className="min-h-[32px] flex items-center gap-2 mb-2">
-                <p className="text-sm font-semibold text-gray-900">Smart Tags</p>
+                <p className="text-sm font-semibold text-gray-900">SMART TAGS</p>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button
-                      className="text-gray-500 hover:text-gray-700 transition-colors flex-shrink-0"
+                      className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
                       aria-label="Manage smart tags"
                     >
                       <Settings className="w-4 h-4" />
@@ -440,7 +462,7 @@ export default function CostAnomalyDetailPage({
                   {smartTags.map((tag, index) => (
                     <Badge
                       key={index}
-                      className="bg-gray-100 text-gray-800 border border-gray-200 px-3 py-1 rounded-full hover:bg-gray-100"
+                      className="bg-gray-50 text-gray-700 border border-gray-200 px-3 py-1.5 rounded-full"
                     >
                       {tag.key}: {tag.value}
                     </Badge>

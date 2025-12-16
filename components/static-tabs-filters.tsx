@@ -233,7 +233,7 @@ export function StaticTabsFilters({
           const filterLabel = filterType === 'subscription' 
             ? 'Subscription' 
             : filterType === 'classification' 
-            ? 'Detected Change Type' 
+            ? 'Status' 
             : 'Severity'
           const selectedValue = filterType === 'subscription' 
             ? selectedSubscription 
@@ -347,7 +347,7 @@ export function StaticTabsFilters({
                   }}
                   className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
                 >
-                  Detected Change Type
+                  Status
                 </button>
               )}
               {!activeFilters.includes('severity') && (
