@@ -317,8 +317,23 @@ export default function CostAnomalyDetailPage({
                         <TooltipTrigger asChild>
                           <Info className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 cursor-help" />
                         </TooltipTrigger>
-                        <TooltipContent className="max-w-[200px]">
-                          <p>Calculated using the past 7-day growth rate added on top of the current anomaly.</p>
+                        <TooltipContent side="left" align="start" sideOffset={8} className="max-w-[320px] p-4">
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <p className="font-semibold text-sm leading-tight">What is Projected Risk?</p>
+                              <p className="text-sm leading-relaxed text-gray-200">Projected Risk shows the estimated daily cost 14 days from now if current trends continue.</p>
+                            </div>
+                            <div className="space-y-2">
+                              <p className="font-semibold text-sm leading-tight">How is it calculated?</p>
+                              <p className="text-sm leading-relaxed text-gray-200">Our projection algorithm analyzes your 14-day cost history to identify patterns:</p>
+                              <ul className="text-sm leading-relaxed text-gray-200 space-y-1.5 mt-2 ml-4 list-disc">
+                                <li>For strong upward trends, we use exponential growth modeling based on your recent daily growth rate</li>
+                                <li>For steady trends, we use linear regression to project the trend forward</li>
+                                <li>For stable costs, we project based on your recent average</li>
+                              </ul>
+                              <p className="text-sm leading-relaxed text-gray-200 mt-3">The projection helps you anticipate budget impacts and plan accordingly.</p>
+                            </div>
+                          </div>
                         </TooltipContent>
                       </Tooltip>
                     </div>
